@@ -1,0 +1,3 @@
+import { platformClient } from "@/modules/platform/rpc-client";
+import type { PaperCatalogue } from "./components/admission-paper";
+export async function getPrintCatalogue():Promise<PaperCatalogue>{const db=await platformClient();const [offerings,subjects]=await Promise.all([db.from("programme_offerings").select("id,name").eq("status","ACTIVE").order("name"),db.from("subjects").select("id,name").eq("is_active",true).order("name")]);if(offerings.error||subjects.error)throw new Error("The programme/subject checklist could not be loaded.");return {offerings:(offerings.data??[]).map(o=>({id:o.id,name:o.name})),subjects:subjects.data??[]};}

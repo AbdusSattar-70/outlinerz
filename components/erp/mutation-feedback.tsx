@@ -1,0 +1,3 @@
+"use client";
+import { useEffect,useState } from "react";
+export function MutationFeedback(){const [message,setMessage]=useState("");useEffect(()=>{const saved=(e:Event)=>setMessage((e as CustomEvent<string>).detail||"Saved successfully.");window.addEventListener("erp:saved",saved);return ()=>window.removeEventListener("erp:saved",saved);},[]);return message?<div role="status" className="mb-4 flex items-center justify-between rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm"><span>{message}</span><button type="button" onClick={()=>setMessage("")} aria-label="Dismiss confirmation">×</button></div>:null;}

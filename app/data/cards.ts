@@ -1,0 +1,15 @@
+export const cards = [
+  { id:1, title:"Small Batch Learning", description:"Maximum 12 students per batch for focused attention.", accent:"#06B6D4", photo:"/images/photo1.jpg" },
+  { id:2, title:"Personal Attention", description:"Teachers can identify each student's learning gaps.", accent:"#0EA5E9" },
+  { id:3, title:"Continuous Assessment", description:"Weekly, monthly and model tests turn learning into measurable progress.", accent:"#2563EB", photo:"/images/photo2.jpg" },
+  { id:4, title:"Student Master", description:"One reliable academic record from admission onward.", accent:"#06B6D4" },
+  { id:5, title:"Attendance", description:"Track class attendance and identify patterns early.", accent:"#8B5CF6", photo:"/images/photo3.jpg" },
+  { id:6, title:"Guardian Connection", description:"Keep guardians informed about learning and follow-up.", accent:"#EC4899" },
+  { id:7, title:"Progress Reports", description:"Clear weekly and monthly progress for every student.", accent:"#F59E0B", photo:"/images/photo4.jpg" },
+  { id:8, title:"Exam Readiness", description:"Find syllabus gaps and focus practice where it matters.", accent:"#10B981" },
+  { id:9, title:"Fees & Receipts", description:"Reliable fee collection history and printable receipts.", accent:"#14B8A6", photo:"/images/photo5.jpg" },
+  { id:10, title:"Class Routine", description:"Organize batches, subjects, teachers and classrooms.", accent:"#2563EB" },
+  { id:11, title:"Teacher Workspace", description:"Attendance, assessments and student monitoring in one place.", accent:"#0EA5E9", photo:"/images/photo6.jpg" },
+  { id:12, title:"Student & Guardian Portal", description:"See routine, attendance, results, progress, fees and notices.", accent:"#6366F1" },
+  { id:13, title:"Sohoj Learning Method", description:"বুঝি → অনুশীলন করি → পরীক্ষা দিই → বিশ্লেষণ করি → দক্ষতা অর্জন করি।", accent:"#06B6D4", photo:"/images/photo7.jpg" },
+];

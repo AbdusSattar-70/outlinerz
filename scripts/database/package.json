@@ -1,0 +1,7 @@
+{
+  "name": "lean-eduops-database-validation",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node validate.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.5.8" }
+}
