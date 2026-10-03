@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
+import { PreferenceControls } from "@/components/shared/preference-controls";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
 import { createClient } from "@/lib/supabase/client";
 export default function UpdatePasswordPage() {
-  const {locale}=useLanguage();const t=(en:string,bn:string)=>locale==="bn"?bn:en;
+  const { locale } = useLanguage();
+  const t = (en: string, bn: string) => (locale === "bn" ? bn : en);
   const [password, setPassword] = useState(""),
     [confirm, setConfirm] = useState(""),
     [message, setMessage] = useState(""),
@@ -28,13 +30,15 @@ export default function UpdatePasswordPage() {
       const {
         data: { user },
       } = await db.auth.getUser();
-    if (new URLSearchParams(window.location.search).get("error")) {
-      setMessage("This setup link is expired. Ask the admin to resend it.");
-      return;
-    }
+      if (new URLSearchParams(window.location.search).get("error")) {
+        setMessage("This setup link is expired. Ask the admin to resend it.");
+        return;
+      }
       setReady(Boolean(user));
       if (!user)
-        setMessage("Open a valid secure account setup or recovery link to continue.");
+        setMessage(
+          "Open a valid secure account setup or recovery link to continue.",
+        );
     })();
   }, []);
   async function submit(e: FormEvent) {
@@ -61,11 +65,14 @@ export default function UpdatePasswordPage() {
   }
   return (
     <main className="mx-auto max-w-md space-y-5 px-5 py-12">
-      <h1 className="text-2xl font-bold">{t("Set your password","আপনার পাসওয়ার্ড তৈরি করুন")}</h1>
+      <PreferenceControls compact />
+      <h1 className="text-2xl font-bold">
+        {t("Set your password", "আপনার পাসওয়ার্ড তৈরি করুন")}
+      </h1>
       {ready && (
         <form onSubmit={submit} className="space-y-4">
           <label className="block">
-            {t("New password","নতুন পাসওয়ার্ড")}
+            {t("New password", "নতুন পাসওয়ার্ড")}
             <input
               type="password"
               autoComplete="new-password"
@@ -77,7 +84,7 @@ export default function UpdatePasswordPage() {
             />
           </label>
           <label className="block">
-            {t("Confirm password","পাসওয়ার্ড আবার লিখুন")}
+            {t("Confirm password", "পাসওয়ার্ড আবার লিখুন")}
             <input
               type="password"
               autoComplete="new-password"
@@ -91,13 +98,31 @@ export default function UpdatePasswordPage() {
             disabled={pending}
             className="rounded-xl bg-primary p-3 text-primary-foreground"
           >
-            {pending?t("Saving…","সংরক্ষণ হচ্ছে…"):t("Save password","পাসওয়ার্ড সংরক্ষণ করুন")}
+            {pending
+              ? t("Saving…", "সংরক্ষণ হচ্ছে…")
+              : t("Save password", "পাসওয়ার্ড সংরক্ষণ করুন")}
           </button>
         </form>
       )}
-      {message && <p role="status">{locale==="bn"?({"This setup link is expired. Ask the admin to resend it.":"লিংকের মেয়াদ শেষ। অ্যাডমিনকে নতুন নির্দেশনা পাঠাতে বলুন।","Open a valid secure account setup or recovery link to continue.":"অ্যাকাউন্ট চালু বা পুনরুদ্ধারের বৈধ নিরাপদ লিংক দিয়ে এগিয়ে যান।","Passwords do not match.":"পাসওয়ার্ড দুটি মিলছে না।","Password saved. You can now sign in with your verified email.":"পাসওয়ার্ড সংরক্ষণ হয়েছে। যাচাইকৃত ইমেইল দিয়ে এখন সাইন ইন করুন।"} as Record<string,string>)[message]??message:message}</p>}
+      {message && (
+        <p role="status">
+          {locale === "bn"
+            ? ((
+                {
+                  "This setup link is expired. Ask the admin to resend it.":
+                    "লিংকের মেয়াদ শেষ। অ্যাডমিনকে নতুন নির্দেশনা পাঠাতে বলুন।",
+                  "Open a valid secure account setup or recovery link to continue.":
+                    "অ্যাকাউন্ট চালু বা পুনরুদ্ধারের বৈধ নিরাপদ লিংক দিয়ে এগিয়ে যান।",
+                  "Passwords do not match.": "পাসওয়ার্ড দুটি মিলছে না।",
+                  "Password saved. You can now sign in with your verified email.":
+                    "পাসওয়ার্ড সংরক্ষণ হয়েছে। যাচাইকৃত ইমেইল দিয়ে এখন সাইন ইন করুন।",
+                } as Record<string, string>
+              )[message] ?? message)
+            : message}
+        </p>
+      )}
       <Link href="/auth/sign-in" className="block underline">
-        {t("Go to sign in","সাইন ইন করুন")}
+        {t("Go to sign in", "সাইন ইন করুন")}
       </Link>
     </main>
   );

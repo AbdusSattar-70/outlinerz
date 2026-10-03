@@ -1,6 +1,6 @@
 # Lean database implementation guardrails
 
-- Fresh baseline is `20261004000000_lean_eduops_baseline.sql`, new empty public schema only. Do not apply to/reset the legacy installation. Future installed changes use additive timestamped migrations.
+- Fresh baseline is `01_outlinerz_eduops_baseline.sql`, new empty public schema only. Do not apply to/reset the legacy installation. Future installed changes use additive timestamped migrations.
 - Existing app modules/types are legacy until migrated. Do not infer compatibility from TypeScript build success or table names.
 - Organization membership from verified Auth identity determines access. RLS, composite tenant references, explicit grants, private file paths and scoped jobs enforce the boundary.
 - Editable directory/academic/business data may use the documented RLS writes. Students/enrollments/financial evidence use approved RPCs. Never grant broad direct financial writes to fix a UI error.

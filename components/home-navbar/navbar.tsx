@@ -8,8 +8,22 @@ import { PreferenceControls } from "@/components/shared/preference-controls";
 import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
-export default function Navbar() {
+export default function Navbar({
+  organizationSlug,
+}: {
+  organizationSlug?: string;
+}) {
   const { t } = useLanguage();
+  const homeHref = organizationSlug
+    ? `/?organization=${encodeURIComponent(organizationSlug)}`
+    : "/";
+  const withTenant = (href: string) =>
+    organizationSlug && !href.startsWith("/auth")
+      ? href.replace(
+          /^(\/[^#?]*)(.*)$/,
+          `$1?organization=${encodeURIComponent(organizationSlug)}$2`,
+        )
+      : href;
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   const links = [
@@ -72,8 +86,8 @@ export default function Navbar() {
         className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-5 sm:h-[4.25rem] sm:px-6 lg:px-8"
       >
         <Link
-          href="/"
-          aria-label="Sohoj Academy home"
+          href={homeHref}
+          aria-label="Outlinerz home"
           className="relative z-10 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <Logo size={64} priority className="sm:hidden" />
@@ -85,7 +99,7 @@ export default function Navbar() {
           {links.map(([label, href]) => (
             <Link
               key={href}
-              href={href}
+              href={withTenant(href)}
               className={cn(
                 "relative rounded-lg px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em]",
                 "text-muted-foreground transition-colors duration-200",
@@ -131,7 +145,10 @@ export default function Navbar() {
               )}
             >
               <Menu className="size-4 group-open:hidden" aria-hidden="true" />
-              <X className="hidden size-4 group-open:block" aria-hidden="true" />
+              <X
+                className="hidden size-4 group-open:block"
+                aria-hidden="true"
+              />
               <span className="sr-only">Toggle navigation menu</span>
             </summary>
 
@@ -166,7 +183,7 @@ export default function Navbar() {
                   {links.map(([label, href], i) => (
                     <Link
                       key={href}
-                      href={href}
+                      href={withTenant(href)}
                       onClick={closeMenu}
                       className={cn(
                         "group/link flex items-center justify-between gap-3",

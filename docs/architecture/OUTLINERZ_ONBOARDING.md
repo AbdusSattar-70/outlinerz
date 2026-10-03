@@ -51,4 +51,6 @@ Build review: remote Google font loading was intermittent and failed inside the 
 - Lint passed with 21 existing warnings in legacy modules and no errors. Two existing blocking lint errors were repaired while verifying the auth/entry slice.
 - Seven local HTTP smoke checks passed: public landing/sign-in/sign-up return 200; anonymous onboarding/organization/dashboard/legacy-dashboard requests reach sign-in. These used dummy local connection settings without real Auth sessions.
 - Browser visual/interaction QA could not run because no Chromium executable is installed. Real signup/email, signed-in hosted navigation, cookie refresh and concurrent sessions remain acceptance work.
-- GitHub connector branch creation returned 403 (integration write access unavailable). Work is committed locally; remote branch/commit publication is not claimed.
+- The initial GitHub write denial was resolved after permission was granted; onboarding was published as `a8d295d` on `feature/organization-onboarding`.
+
+For the subsequent Sohoj CRM interface port, language toggle and browser verification, see [CRM interface](OUTLINERZ_CRM.md).

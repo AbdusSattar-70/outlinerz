@@ -1,4 +1,6 @@
 "use client";
+import { useLanguage } from "@/components/providers/language-provider";
+import { CrmText, useCrmText } from "@/modules/crm/translations";
 
 import Link from "next/link";
 import { Search } from "lucide-react";
@@ -11,28 +13,21 @@ const statuses = [
   "ALL",
   "NEW",
   "CONTACTED",
-  "COUNSELLING",
-  "TRIAL_SCHEDULED",
-  "TRIAL_ATTENDED",
-  "REGISTERED",
-  "CONVERTED",
-  "FUTURE_FOLLOW_UP",
+  "INTERESTED",
+  "ADMITTED",
   "LOST",
 ] as const;
-
-const intents = ["ALL", "interest", "admission"] as const;
-
-const QUEUE_STATUSES = new Set([
-  "NEW",
-  "CONTACTED",
-  "COUNSELLING",
-  "FUTURE_FOLLOW_UP",
-]);
+type Intent = "ALL" | "interest" | "admission";
+const QUEUE_STATUSES = new Set(["NEW", "CONTACTED", "INTERESTED"]);
 
 export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
+  const tr = useCrmText();
+  const { locale } = useLanguage();
+  const dateLocale = locale === "bn" ? "bn-BD" : "en-GB";
+
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<(typeof statuses)[number]>("QUEUE");
-  const [intent, setIntent] = useState<(typeof intents)[number]>("ALL");
+  const [intent, setIntent] = useState<Intent>("ALL");
   const [needsReviewOnly, setNeedsReviewOnly] = useState(false);
 
   const filtered = useMemo(() => {
@@ -76,10 +71,10 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
       <div className="flex flex-col gap-3 border-b p-4">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
-            Queue: {queueCount}
+            <CrmText text="Queue:" /> {queueCount}
           </span>
           <span className="rounded-full bg-amber-50 px-2.5 py-1 font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-            School review: {reviewCount}
+            <CrmText text="School review:" /> {reviewCount}
           </span>
         </div>
 
@@ -92,15 +87,19 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search name, mobile, school, offering or prospect ID"
+              placeholder={tr(
+                "Search name, mobile, school, offering or prospect ID",
+              )}
               className="min-h-11 w-full rounded-xl border bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Search prospects"
+              aria-label={tr("Search prospects")}
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Status</span>
+              <span className="text-muted-foreground">
+                <CrmText text="Status" />{" "}
+              </span>
               <select
                 value={status}
                 onChange={(event) =>
@@ -110,26 +109,30 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
               >
                 {statuses.map((item) => (
                   <option key={item} value={item}>
-                    {item === "QUEUE"
-                      ? "Verification queue"
-                      : item.replaceAll("_", " ")}
+                    {item === "QUEUE" ? tr("Verification queue") : tr(item)}
                   </option>
                 ))}
               </select>
             </label>
 
             <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Intent</span>
+              <span className="text-muted-foreground">
+                <CrmText text="Intent" />{" "}
+              </span>
               <select
                 value={intent}
-                onChange={(event) =>
-                  setIntent(event.target.value as (typeof intents)[number])
-                }
+                onChange={(event) => setIntent(event.target.value as Intent)}
                 className="min-h-11 rounded-xl border bg-background px-3"
               >
-                <option value="ALL">All</option>
-                <option value="interest">Interest</option>
-                <option value="admission">Admission</option>
+                <option value="ALL">
+                  <CrmText text="All" />{" "}
+                </option>
+                <option value="interest">
+                  <CrmText text="Interest" />{" "}
+                </option>
+                <option value="admission">
+                  <CrmText text="Admission" />{" "}
+                </option>
               </select>
             </label>
 
@@ -140,7 +143,7 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
                 onChange={(event) => setNeedsReviewOnly(event.target.checked)}
                 className="size-4 accent-amber-700"
               />
-              School needs review
+              <CrmText text="School needs review" />{" "}
             </label>
           </div>
         </div>
@@ -150,14 +153,30 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
         <table className="min-w-full text-left text-sm">
           <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 font-medium">Prospect</th>
-              <th className="px-4 py-3 font-medium">Student</th>
-              <th className="px-4 py-3 font-medium">Class / School</th>
-              <th className="px-4 py-3 font-medium">Intent / Offering</th>
-              <th className="px-4 py-3 font-medium">Source</th>
-              <th className="px-4 py-3 font-medium">Follow-up staff</th>
-              <th className="px-4 py-3 font-medium">Next follow-up</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Prospect" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Student" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Class / School" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Intent / Offering" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Source" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Follow-up staff" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Next follow-up" />{" "}
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <CrmText text="Status" />{" "}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -171,7 +190,7 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
                     {row.prospectNo}
                   </Link>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {new Date(row.createdAt).toLocaleDateString()}
+                    {new Date(row.createdAt).toLocaleDateString(dateLocale)}
                   </p>
                 </td>
                 <td className="px-4 py-3">
@@ -192,29 +211,44 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
                   </p>
                   {row.schoolNeedsReview ? (
                     <p className="mt-1 text-xs font-medium text-amber-800 dark:text-amber-200">
-                      School needs review
+                      <CrmText text="School needs review" />{" "}
                     </p>
                   ) : null}
                 </td>
                 <td className="px-4 py-3">
                   <p className="font-medium capitalize">
-                    {row.submissionIntent}
+                    {tr(
+                      row.submissionIntent === "admission"
+                        ? "Admission"
+                        : "Interest",
+                    )}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {row.offeringLabel}
                   </p>
                 </td>
-                <td className="px-4 py-3">{row.sourceName}</td>
+                <td className="px-4 py-3">
+                  {row.sourceName === "PUBLIC_FORM"
+                    ? tr("Public form")
+                    : row.sourceName}
+                </td>
                 <td className="px-4 py-3">{row.assignedTo}</td>
                 <td className="px-4 py-3">
                   {row.nextFollowUpAt ? (
                     <>
-                      <p>{new Date(row.nextFollowUpAt).toLocaleDateString()}</p>
+                      <p>
+                        {new Date(row.nextFollowUpAt).toLocaleDateString(
+                          dateLocale,
+                        )}
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {new Date(row.nextFollowUpAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(row.nextFollowUpAt).toLocaleTimeString(
+                          dateLocale,
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </p>
                     </>
                   ) : (
@@ -231,13 +265,15 @@ export function ProspectTable({ rows }: { rows: ProspectListRow[] }) {
 
         {!filtered.length && (
           <div className="p-8 text-center text-sm text-muted-foreground">
-            No prospects match the current filters.
+            <CrmText text="No prospects match the current filters." />{" "}
           </div>
         )}
       </div>
 
       <div className="border-t px-4 py-3 text-xs text-muted-foreground">
-        Showing {filtered.length} of {rows.length} prospect records.
+        <CrmText text="Showing" /> {filtered.length}
+        <CrmText text="of" /> {rows.length}
+        <CrmText text="prospect records." />{" "}
       </div>
     </section>
   );

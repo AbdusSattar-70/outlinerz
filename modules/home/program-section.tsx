@@ -12,28 +12,47 @@ import { LocalizedText } from "@/components/shared/localized-text";
 import { getPublicProgrammeOfferings } from "@/modules/offerings/queries";
 
 function feeSummaryFromPlan(
-  plan: {
-    billing_cycle: string;
-    currency_code: string;
-    components: { name: string; amount: number; charge_type: string; recurrence: string }[];
-  } | null | undefined,
+  plan:
+    | {
+        billing_cycle: string;
+        currency_code: string;
+        components: {
+          name: string;
+          amount: number;
+          charge_type: string;
+          recurrence: string;
+        }[];
+      }
+    | null
+    | undefined,
 ): [string, string] | null {
   if (!plan?.components?.length) return null;
   const tuition = plan.components.find(
-    (c) => c.charge_type === "TUITION" && c.recurrence === "PER_CYCLE",
+    (c) =>
+      c.charge_type === "TUITION" &&
+      ["PER_CYCLE", "MONTHLY", "ONE_TIME"].includes(c.recurrence),
   );
   const admission = plan.components.find((c) => c.charge_type === "ADMISSION");
   const currency = plan.currency_code || "BDT";
-  const cycle = (plan.billing_cycle || "MONTHLY").replaceAll("_", " ").toLowerCase();
+  const cycle = plan.billing_cycle === "ONE_TIME" ? "one time" : "monthly";
+  const cycleBn = plan.billing_cycle === "ONE_TIME" ? "এককালীন" : "মাসিক";
   const partsEn: string[] = [];
   const partsBn: string[] = [];
   if (tuition) {
-    partsEn.push(`${currency} ${Number(tuition.amount).toLocaleString("en-BD")} / ${cycle}`);
-    partsBn.push(`${currency} ${Number(tuition.amount).toLocaleString("en-BD")} / ${cycle}`);
+    partsEn.push(
+      `${currency} ${Number(tuition.amount).toLocaleString("en-BD")} / ${cycle}`,
+    );
+    partsBn.push(
+      `${currency} ${Number(tuition.amount).toLocaleString("bn-BD")} / ${cycleBn}`,
+    );
   }
   if (admission) {
-    partsEn.push(`Admission ${currency} ${Number(admission.amount).toLocaleString("en-BD")}`);
-    partsBn.push(`ভর্তি ${currency} ${Number(admission.amount).toLocaleString("en-BD")}`);
+    partsEn.push(
+      `Admission ${currency} ${Number(admission.amount).toLocaleString("en-BD")}`,
+    );
+    partsBn.push(
+      `ভর্তি ${currency} ${Number(admission.amount).toLocaleString("en-BD")}`,
+    );
   }
   if (!partsEn.length) {
     const first = plan.components[0];
@@ -50,7 +69,10 @@ function windowNoteFromOffering(row: {
   applications_close_on: string | null;
 }): [string, string] | null {
   if (row.application_state === "UPCOMING" && row.applications_open_on) {
-    return [`Opens ${row.applications_open_on}`, `${row.applications_open_on} থেকে আবেদন`];
+    return [
+      `Opens ${row.applications_open_on}`,
+      `${row.applications_open_on} থেকে আবেদন`,
+    ];
   }
   if (!row.is_accepting_applications) {
     return ["Applications closed", "আবেদন বন্ধ"];
@@ -70,7 +92,10 @@ function windowNoteFromOffering(row: {
     }
   };
   if (open && close) {
-    return [`Apply ${fmt(open)} – ${fmt(close)}`, `আবেদন ${fmt(open)} – ${fmt(close)}`];
+    return [
+      `Apply ${fmt(open)} – ${fmt(close)}`,
+      `আবেদন ${fmt(open)} – ${fmt(close)}`,
+    ];
   }
   if (close) {
     return [`Apply by ${fmt(close)}`, `${fmt(close)} পর্যন্ত আবেদন`];
@@ -105,43 +130,74 @@ type ProgramCard = {
   availability: [string, string];
 };
 
-export async function HomeProgramSection() {
-  const rows = await getPublicProgrammeOfferings();
+export async function HomeProgramSection({ slug }: { slug?: string }) {
+  const rows = await getPublicProgrammeOfferings(slug);
   const programs: ProgramCard[] =
     rows?.map((row) => ({
-          key: row.id,
-          eyebrow: [
-            row.showcase_eyebrow || row.code,
-            row.showcase_eyebrow_bn || row.showcase_eyebrow || row.code,
-          ] as [string, string],
-          title: [
-            row.showcase_title || row.name,
-            row.showcase_title_bn || row.showcase_title || row.name,
-          ] as [string, string],
-          description: [
-            row.showcase_description || "",
-            row.showcase_description_bn || row.showcase_description || "",
-          ] as [string, string],
-          icon: SHOWCASE_ICONS[row.showcase_icon ?? ""] ?? GraduationCap,
-          offeringId: row.id,
-          acceptingApplications: Boolean(row.is_accepting_applications),
-          feeSummary: feeSummaryFromPlan(row.fee_plan),
-          windowNote: windowNoteFromOffering(row),
-          academicContext: [row.academic_year_name, row.branch_name, row.class_name, row.group_name]
-            .filter(Boolean).join(" · "),
-          subjects: row.subjects.map((subject) => subject.name),
-          schedule: row.public_schedule ? [row.public_schedule, row.public_schedule_bn || row.public_schedule] : null,
-          requirements: row.public_requirements ? [row.public_requirements, row.public_requirements_bn || row.public_requirements] : null,
-          policy: row.admission_policy ? [row.admission_policy, row.admission_policy_bn || row.admission_policy] : null,
-          availability: row.active_batch_count === 0
-            ? ["Batch placement being prepared", "ব্যাচে স্থান নির্ধারণ প্রস্তুত হচ্ছে"]
-            : row.current_open_seats === 0
-              ? ["Current batches are full; staff will review placement options", "বর্তমান ব্যাচগুলো পূর্ণ; স্টাফ স্থান নির্ধারণ পর্যালোচনা করবে"]
-              : [`${row.current_open_seats} of ${row.current_total_seats} current batch seats open · placement confirmed after review`, `বর্তমান ব্যাচে ${row.current_total_seats}টির মধ্যে ${row.current_open_seats}টি আসন খালি · যাচাইয়ের পরে স্থান নিশ্চিত`],
-        })) ?? [];
+      key: row.id,
+      eyebrow: [
+        row.showcase_eyebrow || row.code,
+        row.showcase_eyebrow_bn || row.showcase_eyebrow || row.code,
+      ] as [string, string],
+      title: [
+        row.showcase_title || row.name,
+        row.showcase_title_bn || row.showcase_title || row.name,
+      ] as [string, string],
+      description: [
+        row.showcase_description || "",
+        row.showcase_description_bn || row.showcase_description || "",
+      ] as [string, string],
+      icon: SHOWCASE_ICONS[row.showcase_icon ?? ""] ?? GraduationCap,
+      offeringId: row.id,
+      acceptingApplications: Boolean(row.is_accepting_applications),
+      feeSummary: feeSummaryFromPlan(row.fee_plan),
+      windowNote: windowNoteFromOffering(row),
+      academicContext: [
+        row.academic_year_name,
+        row.branch_name,
+        row.class_name,
+        row.group_name,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      subjects: row.subjects.map((subject) => subject.name),
+      schedule: row.public_schedule
+        ? [row.public_schedule, row.public_schedule_bn || row.public_schedule]
+        : null,
+      requirements: row.public_requirements
+        ? [
+            row.public_requirements,
+            row.public_requirements_bn || row.public_requirements,
+          ]
+        : null,
+      policy: row.admission_policy
+        ? [
+            row.admission_policy,
+            row.admission_policy_bn || row.admission_policy,
+          ]
+        : null,
+      availability:
+        row.active_batch_count === 0
+          ? [
+              "Batch placement being prepared",
+              "ব্যাচে স্থান নির্ধারণ প্রস্তুত হচ্ছে",
+            ]
+          : row.current_open_seats === 0
+            ? [
+                "Current batches are full; staff will review placement options",
+                "বর্তমান ব্যাচগুলো পূর্ণ; স্টাফ স্থান নির্ধারণ পর্যালোচনা করবে",
+              ]
+            : [
+                `${row.current_open_seats} of ${row.current_total_seats} current batch seats open · placement confirmed after review`,
+                `বর্তমান ব্যাচে ${row.current_total_seats}টির মধ্যে ${row.current_open_seats}টি আসন খালি · যাচাইয়ের পরে স্থান নিশ্চিত`,
+              ],
+    })) ?? [];
 
   return (
-    <section id="programs" className="scroll-mt-24 border-b border-border bg-muted/35">
+    <section
+      id="programs"
+      className="scroll-mt-24 border-b border-border bg-muted/35"
+    >
       <div className="mx-auto max-w-7xl px-5 py-18 sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700 dark:text-blue-400">
@@ -163,20 +219,29 @@ export async function HomeProgramSection() {
 
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {programs.length === 0 && (
-            <p className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground lg:col-span-3" role={rows === null ? "alert" : "status"}>
+            <p
+              className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground lg:col-span-3"
+              role={rows === null ? "alert" : "status"}
+            >
               {rows === null ? (
-                <LocalizedText en="Programme information is temporarily unavailable. Please try again shortly." bn="প্রোগ্রামের তথ্য সাময়িকভাবে পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।" />
+                <LocalizedText
+                  en="Programme information is temporarily unavailable. Please try again shortly."
+                  bn="প্রোগ্রামের তথ্য সাময়িকভাবে পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।"
+                />
               ) : (
-                <LocalizedText en="No programmes are published at the moment. Please check back soon." bn="এখন কোনো প্রোগ্রাম প্রকাশিত নেই। পরে আবার দেখুন।" />
+                <LocalizedText
+                  en="No programmes are published at the moment. Please check back soon."
+                  bn="এখন কোনো প্রোগ্রাম প্রকাশিত নেই। পরে আবার দেখুন।"
+                />
               )}
             </p>
           )}
           {programs.map((program) => {
             const interestHref = program.offeringId
-              ? `/interest?offering=${program.offeringId}`
+              ? `/interest?organization=${encodeURIComponent(slug ?? "")}&offering=${program.offeringId}`
               : "/interest";
             const applyHref = program.offeringId
-              ? `/interest?offering=${program.offeringId}&intent=admission`
+              ? `/interest?organization=${encodeURIComponent(slug ?? "")}&offering=${program.offeringId}&intent=admission`
               : "/interest?intent=admission";
 
             return (
@@ -189,23 +254,41 @@ export async function HomeProgramSection() {
                     <program.icon className="size-5" aria-hidden="true" />
                   </div>
                   {program.windowNote ? (
-                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${program.acceptingApplications ? "border border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border border-white/10 bg-white/5 text-slate-300"}`}>
-                      <LocalizedText en={program.windowNote[0]} bn={program.windowNote[1]} />
+                    <span
+                      className={`rounded-full px-3 py-1 text-[11px] font-semibold ${program.acceptingApplications ? "border border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border border-white/10 bg-white/5 text-slate-300"}`}
+                    >
+                      <LocalizedText
+                        en={program.windowNote[0]}
+                        bn={program.windowNote[1]}
+                      />
                     </span>
                   ) : null}
                 </div>
                 <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-300">
-                  <LocalizedText en={program.eyebrow[0]} bn={program.eyebrow[1]} />
+                  <LocalizedText
+                    en={program.eyebrow[0]}
+                    bn={program.eyebrow[1]}
+                  />
                 </p>
                 <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">
                   <LocalizedText en={program.title[0]} bn={program.title[1]} />
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{program.academicContext}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  {program.academicContext}
+                </p>
 
                 {program.subjects.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2" aria-label="Subjects">
+                  <div
+                    className="mt-4 flex flex-wrap gap-2"
+                    aria-label="Subjects"
+                  >
                     {program.subjects.map((subject) => (
-                      <span key={subject} className="rounded-full border border-white/10 bg-white/4 px-2.5 py-1 text-[11px] text-slate-300">{subject}</span>
+                      <span
+                        key={subject}
+                        className="rounded-full border border-white/10 bg-white/4 px-2.5 py-1 text-[11px] text-slate-300"
+                      >
+                        {subject}
+                      </span>
                     ))}
                   </div>
                 )}
@@ -214,48 +297,113 @@ export async function HomeProgramSection() {
                   <summary className="cursor-pointer list-none rounded-lg text-sm text-slate-300 outline-none marker:hidden focus-visible:ring-2 focus-visible:ring-blue-400 [&::-webkit-details-marker]:hidden">
                     {program.description[0] ? (
                       <span className="mb-2 block line-clamp-2 leading-6 text-slate-300 group-open/details:line-clamp-none">
-                        <LocalizedText en={program.description[0]} bn={program.description[1]} />
+                        <LocalizedText
+                          en={program.description[0]}
+                          bn={program.description[1]}
+                        />
                       </span>
                     ) : null}
                     <span className="inline-flex items-center gap-2 font-semibold text-blue-200 transition group-open/details:text-blue-100">
-                      <span className="group-open/details:hidden"><LocalizedText en="Read programme details" bn="প্রোগ্রামের বিস্তারিত" /></span>
-                      <span className="hidden group-open/details:inline"><LocalizedText en="Show less" bn="সংক্ষিপ্ত করুন" /></span>
-                      <span aria-hidden="true" className="transition group-open/details:rotate-180">⌄</span>
+                      <span className="group-open/details:hidden">
+                        <LocalizedText
+                          en="Read programme details"
+                          bn="প্রোগ্রামের বিস্তারিত"
+                        />
+                      </span>
+                      <span className="hidden group-open/details:inline">
+                        <LocalizedText en="Show less" bn="সংক্ষিপ্ত করুন" />
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="transition group-open/details:rotate-180"
+                      >
+                        ⌄
+                      </span>
                     </span>
                   </summary>
                   <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-                  {program.schedule ? <p><span className="font-semibold text-white"><LocalizedText en="Schedule" bn="সময়সূচি" /></span><br /><LocalizedText en={program.schedule[0]} bn={program.schedule[1]} /></p> : null}
-                  {program.requirements ? <p><span className="font-semibold text-white"><LocalizedText en="Requirements" bn="শর্ত" /></span><br /><LocalizedText en={program.requirements[0]} bn={program.requirements[1]} /></p> : null}
-                  {program.policy ? <p><span className="font-semibold text-white"><LocalizedText en="Admission" bn="ভর্তি" /></span><br /><LocalizedText en={program.policy[0]} bn={program.policy[1]} /></p> : null}
-                  <p className="text-slate-400"><LocalizedText en={program.availability[0]} bn={program.availability[1]} /></p>
+                    {program.schedule ? (
+                      <p>
+                        <span className="font-semibold text-white">
+                          <LocalizedText en="Schedule" bn="সময়সূচি" />
+                        </span>
+                        <br />
+                        <LocalizedText
+                          en={program.schedule[0]}
+                          bn={program.schedule[1]}
+                        />
+                      </p>
+                    ) : null}
+                    {program.requirements ? (
+                      <p>
+                        <span className="font-semibold text-white">
+                          <LocalizedText en="Requirements" bn="শর্ত" />
+                        </span>
+                        <br />
+                        <LocalizedText
+                          en={program.requirements[0]}
+                          bn={program.requirements[1]}
+                        />
+                      </p>
+                    ) : null}
+                    {program.policy ? (
+                      <p>
+                        <span className="font-semibold text-white">
+                          <LocalizedText en="Admission" bn="ভর্তি" />
+                        </span>
+                        <br />
+                        <LocalizedText
+                          en={program.policy[0]}
+                          bn={program.policy[1]}
+                        />
+                      </p>
+                    ) : null}
+                    <p className="text-slate-400">
+                      <LocalizedText
+                        en={program.availability[0]}
+                        bn={program.availability[1]}
+                      />
+                    </p>
                   </div>
                 </details>
 
                 <div className="mt-auto pt-5">
                   {program.feeSummary ? (
                     <p className="mb-4 rounded-xl border border-white/10 bg-white/4 px-3 py-2.5 text-sm font-semibold text-white">
-                      <LocalizedText en={program.feeSummary[0]} bn={program.feeSummary[1]} />
+                      <LocalizedText
+                        en={program.feeSummary[0]}
+                        bn={program.feeSummary[1]}
+                      />
                     </p>
                   ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row">
-                  <Link
-                    href={interestHref}
-                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/4 px-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    <LocalizedText en="Register Interest" bn="আগ্রহ নিবন্ধন" />
-                  </Link>
-                  {program.acceptingApplications ? (
                     <Link
-                      href={applyHref}
-                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-blue-500 px-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:bg-blue-400"
+                      href={interestHref}
+                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/4 px-3 text-sm font-semibold text-white transition hover:bg-white/10"
                     >
-                      <LocalizedText en="Apply for Admission" bn="ভর্তির আবেদন" />
+                      <LocalizedText
+                        en="Register Interest"
+                        bn="আগ্রহ নিবন্ধন"
+                      />
                     </Link>
-                  ) : (
-                    <span className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/10 px-3 text-xs font-medium text-slate-400">
-                      <LocalizedText en="Applications closed" bn="আবেদন বন্ধ" />
-                    </span>
-                  )}
+                    {program.acceptingApplications ? (
+                      <Link
+                        href={applyHref}
+                        className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-blue-500 px-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:bg-blue-400"
+                      >
+                        <LocalizedText
+                          en="Apply for Admission"
+                          bn="ভর্তির আবেদন"
+                        />
+                      </Link>
+                    ) : (
+                      <span className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/10 px-3 text-xs font-medium text-slate-400">
+                        <LocalizedText
+                          en="Applications closed"
+                          bn="আবেদন বন্ধ"
+                        />
+                      </span>
+                    )}
                   </div>
                 </div>
               </article>

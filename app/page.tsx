@@ -1,2 +1,10 @@
-import Link from 'next/link';
-export default function HomePage(){return <main className="mx-auto max-w-5xl px-6 py-10"><header className="flex items-center justify-between"><span className="text-2xl font-bold">Outlinerz</span><Link href="/auth/sign-in" className="rounded-xl border px-5 py-3">Sign in</Link></header><section className="max-w-3xl py-24"><p className="text-sm font-semibold uppercase tracking-widest text-primary">Education operations</p><h1 className="mt-5 text-4xl font-bold leading-tight sm:text-6xl">আপনার প্রতিষ্ঠানের কাজ,<br/>একটি সহজ কর্মপরিসরে।</h1><p className="mt-6 text-lg leading-8 text-muted-foreground">ছোট coaching ও tuition প্রতিষ্ঠানের জন্য Outlinerz। নিজস্ব প্রতিষ্ঠান তৈরি করুন এবং একাডেমিক setup শুরু করুন।</p><Link href="/auth/sign-up" className="mt-8 inline-block rounded-xl bg-primary px-6 py-4 font-semibold text-primary-foreground">নিজের প্রতিষ্ঠান শুরু করুন</Link></section></main>;}
+import { HomePageContent } from "@/modules/home/page-content";
+import { publicSlug } from "@/modules/crm/public";
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ organization?: string }>;
+}) {
+  const params = await searchParams;
+  return <HomePageContent slug={publicSlug(params.organization)} />;
+}

@@ -1,57 +1,91 @@
-import { createClient } from "@/lib/supabase/server";
-
-function dataOrThrow<T>(data: T | null, error: { message: string } | null): T {
-  if (error) throw new Error(error.message);
-  if (data === null) throw new Error("The requested data is unavailable.");
-  return data;
-}
-
-type GroupRow = { id: string; code: string; name: string; is_active: boolean };
-
+import { crmAccess } from "../access";
 export async function getManageCrmOverview() {
-  const db = await createClient();
-  // academic_groups is created in migration 0008; generated types may lag until regen.
-  const groupsClient = db as unknown as {
-    from: (table: "academic_groups") => {
-      select: (cols: string) => {
-        order: (col: string) => Promise<{ data: GroupRow[] | null; error: { message: string } | null }>;
-      };
-    };
-  };
-
+  const { db, organization } = await crmAccess();
+  if (!["OWNER", "ADMIN"].includes(organization.role))
+    throw new Error("Master data access denied.");
   const [
-    yearsQ,
-    classesQ,
-    groupsQ,
-    subjectsQ,
-    programsQ,
-    schoolsQ,
-    areasQ,
-    sourcesQ,
-    relationshipsQ,
+    years,
+    classes,
+    groups,
+    subjects,
+    programs,
+    schools,
+    areas,
+    sources,
+    relationships,
   ] = await Promise.all([
-    db.from("academic_years").select("id,name,starts_on,ends_on,is_active,created_at").order("starts_on", { ascending: false }),
-    db.from("classes").select("id,code,name,sort_order,is_active,created_at").order("sort_order"),
-    groupsClient.from("academic_groups").select("id,code,name,is_active").order("name"),
-    db.from("subjects").select("id,code,name,is_active,created_at").order("name"),
-    db.from("programs").select("id,code,name,description,is_active,created_at").order("name"),
-    db.from("schools").select("id,name,area_id,is_verified,is_active,created_at,updated_at").order("name"),
-    db.from("areas").select("id,name,is_active").eq("is_active", true).order("name"),
-    db.from("lead_sources").select("id,code,name,is_active,created_at").order("name"),
-    db.from("guardian_relationships").select("id,code,name,is_active,created_at").order("name"),
+    db
+      .from("academic_years")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("starts_on", { ascending: false }),
+    db
+      .from("class_levels")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("sort_order"),
+    db
+      .from("class_groups")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("subjects")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("programmes")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("schools")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("areas")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("lead_sources")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
+    db
+      .from("guardian_relationships")
+      .select("*")
+      .eq("organization_id", organization.id)
+      .order("name"),
   ]);
-
+  for (const q of [
+    years,
+    classes,
+    groups,
+    subjects,
+    programs,
+    schools,
+    areas,
+    sources,
+    relationships,
+  ])
+    if (q.error) throw new Error("CRM directory could not be loaded.");
+  const adapt = <T extends { active: boolean }>(q: { data: T[] | null }) =>
+    (q.data ?? []).map((r) => ({ ...r, is_active: r.active }));
   return {
-    years: dataOrThrow(yearsQ.data, yearsQ.error),
-    classes: dataOrThrow(classesQ.data, classesQ.error),
-    groups: dataOrThrow(groupsQ.data, groupsQ.error),
-    subjects: dataOrThrow(subjectsQ.data, subjectsQ.error),
-    programs: dataOrThrow(programsQ.data, programsQ.error),
-    schools: dataOrThrow(schoolsQ.data, schoolsQ.error),
-    areas: dataOrThrow(areasQ.data, areasQ.error),
-    leadSources: dataOrThrow(sourcesQ.data, sourcesQ.error),
-    relationships: dataOrThrow(relationshipsQ.data, relationshipsQ.error),
+    years: adapt(years),
+    classes: adapt(classes),
+    groups: adapt(groups),
+    subjects: adapt(subjects),
+    programs: adapt(programs),
+    schools: adapt(schools),
+    areas: adapt(areas),
+    leadSources: adapt(sources),
+    relationships: adapt(relationships),
   };
 }
-
-export type ManageCrmOverview = Awaited<ReturnType<typeof getManageCrmOverview>>;
+export type ManageCrmOverview = Awaited<
+  ReturnType<typeof getManageCrmOverview>
+>;

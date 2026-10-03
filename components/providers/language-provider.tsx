@@ -12,8 +12,8 @@ import {
 
 export type AppLocale = "en" | "bn";
 
-const STORAGE_KEY = "sohoj-locale";
-const CHANGE_EVENT = "sohoj-locale-change";
+const STORAGE_KEY = "outlinerz-locale";
+const CHANGE_EVENT = "outlinerz-locale-change";
 
 const dictionary = {
   en: {
@@ -26,7 +26,7 @@ const dictionary = {
     system: "System",
     programs: "Programs",
     learningMethod: "Learning Method",
-    whySohoj: "Why Sohoj",
+    whySohoj: "Why Outlinerz",
     aboutUs: "About",
     faq: "FAQ",
     journal: "Journal",
@@ -35,7 +35,7 @@ const dictionary = {
     openDigitalCampus: "Open Digital Campus",
     skipToContent: "Skip to main content",
     dashboard: "Dashboard",
-    sohojDigitalCampus: "Sohoj Academy Digital Campus",
+    sohojDigitalCampus: "Outlinerz Digital Campus",
     academic: "Academic",
     finance: "Finance",
     communication: "Communication",
@@ -71,7 +71,7 @@ const dictionary = {
     system: "সিস্টেম",
     programs: "প্রোগ্রামসমূহ",
     learningMethod: "শেখার পদ্ধতি",
-    whySohoj: "কেন সহজ",
+    whySohoj: "কেন Outlinerz",
     aboutUs: "আমাদের সম্পর্কে",
     faq: "প্রশ্নোত্তর",
     journal: "শিক্ষা-জার্নাল",
@@ -80,7 +80,7 @@ const dictionary = {
     openDigitalCampus: "ডিজিটাল ক্যাম্পাস খুলুন",
     skipToContent: "মূল কনটেন্টে যান",
     dashboard: "ড্যাশবোর্ড",
-    sohojDigitalCampus: "সহজ একাডেমি ডিজিটাল ক্যাম্পাস",
+    sohojDigitalCampus: "Outlinerz ডিজিটাল ক্যাম্পাস",
     academic: "একাডেমিক",
     finance: "ফাইন্যান্স",
     communication: "যোগাযোগ",
@@ -140,7 +140,11 @@ function getServerSnapshot(): AppLocale {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const locale = useSyncExternalStore(subscribe, getStoredLocale, getServerSnapshot);
+  const locale = useSyncExternalStore(
+    subscribe,
+    getStoredLocale,
+    getServerSnapshot,
+  );
 
   useEffect(() => {
     document.documentElement.lang = locale === "bn" ? "bn-BD" : "en";
@@ -162,7 +166,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       toggleLocale,
       t: (key) => dictionary[locale][key],
     }),
-    [locale, setLocale, toggleLocale]
+    [locale, setLocale, toggleLocale],
   );
 
   return (

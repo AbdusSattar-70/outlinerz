@@ -5,18 +5,23 @@ import Navbar from "@/components/home-navbar/navbar";
 import { PublicInterestForm } from "@/components/public/interest-form";
 import Logo from "@/components/shared/logo";
 import { LocalizedText } from "@/components/shared/localized-text";
-import { createClient } from "@/lib/supabase/server";
+import { publicSlug, getPublicOptions } from "@/modules/crm/public";
+import { randomUUID } from "node:crypto";
 import { getPublicProgrammeOfferings } from "@/modules/offerings/queries";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Register Interest | Sohoj Academy",
+  title: "Register Interest | Outlinerz",
   description:
-    "Register academic interest with Sohoj Academy for programme, subject and schedule follow-up.",
+    "Register academic interest with Outlinerz for programme, subject and schedule follow-up.",
 };
 
-type SearchParams = Promise<{ offering?: string; intent?: string }>;
+type SearchParams = Promise<{
+  offering?: string;
+  intent?: string;
+  organization?: string;
+}>;
 
 export default async function InterestPage({
   searchParams,
@@ -27,44 +32,38 @@ export default async function InterestPage({
   const intent = params.intent === "admission" ? "admission" : "interest";
   const requestedOfferingId = params.offering?.trim() || "";
 
-  const supabase = await createClient();
-
-  const [classesQ, programsQ, subjectsQ, schoolsQ, sourcesQ, relationshipsQ, publicOfferings] = await Promise.all([
-    supabase.from("classes").select("id,name").eq("is_active", true).order("sort_order"),
-    supabase.from("programs").select("id,name").eq("is_active", true).order("name"),
-    supabase.from("subjects").select("id,name").eq("is_active", true).order("name"),
-    supabase.from("schools").select("id,name").eq("is_active", true).order("name").limit(500),
-    supabase.from("lead_sources").select("code,name").eq("is_active", true).order("name"),
-    supabase.from("guardian_relationships").select("code,name").eq("is_active", true).order("name"),
-    getPublicProgrammeOfferings(),
+  const slug = publicSlug(params.organization);
+  const [options, publicOfferings] = await Promise.all([
+    getPublicOptions(slug),
+    getPublicProgrammeOfferings(slug),
   ]);
+  const classesQ = { data: options?.classes },
+    programsQ = { data: options?.programs },
+    subjectsQ = { data: options?.subjects },
+    schoolsQ = { data: options?.schools },
+    sourcesQ = { data: options?.sources },
+    relationshipsQ = { data: options?.relationships };
 
-  const openOfferings = (publicOfferings ?? []).filter((row) => row.is_accepting_applications);
+  const openOfferings = (publicOfferings ?? []).filter(
+    (row) => row.is_accepting_applications,
+  );
   const preselected =
-    openOfferings.find((row) => row.id === requestedOfferingId) ??
-    null;
+    openOfferings.find((row) => row.id === requestedOfferingId) ?? null;
   const closedRequested =
     Boolean(requestedOfferingId) &&
     !preselected &&
     (publicOfferings ?? []).some((row) => row.id === requestedOfferingId);
 
-  const optionsUnavailable =
-    Boolean(classesQ.error) ||
-    Boolean(programsQ.error) ||
-    Boolean(subjectsQ.error) ||
-    Boolean(schoolsQ.error) ||
-    Boolean(sourcesQ.error) ||
-    Boolean(relationshipsQ.error) ||
-    publicOfferings === null;
+  const optionsUnavailable = !options || publicOfferings === null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar />
+      <Navbar organizationSlug={slug} />
       <main id="main-content">
         <section className="border-b border-border bg-background">
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-6 lg:px-8 lg:py-16">
             <Link
-              href="/"
+              href={`/?organization=${encodeURIComponent(slug)}`}
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               <House className="size-4" aria-hidden="true" />
@@ -72,11 +71,19 @@ export default async function InterestPage({
             </Link>
 
             <div className="mt-8 max-w-3xl">
+              {options?.organization?.name && (
+                <p className="mb-3 text-lg font-semibold">
+                  {options.organization.name}
+                </p>
+              )}
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700 dark:text-blue-400">
                 {intent === "admission" ? (
                   <LocalizedText en="Admission application" bn="ভর্তির আবেদন" />
                 ) : (
-                  <LocalizedText en="Student Interest Registration" bn="শিক্ষার্থী আগ্রহ নিবন্ধন" />
+                  <LocalizedText
+                    en="Student Interest Registration"
+                    bn="শিক্ষার্থী আগ্রহ নিবন্ধন"
+                  />
                 )}
               </p>
               <h1 className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl lg:text-5xl">
@@ -100,7 +107,7 @@ export default async function InterestPage({
                   />
                 ) : (
                   <LocalizedText
-                    en="This short registration helps Sohoj Academy understand the student's class, programme or subject interests and preferred schedule before admission."
+                    en="This short registration helps Outlinerz understand the student's class, programme or subject interests and preferred schedule before admission."
                     bn="এই সংক্ষিপ্ত নিবন্ধন ভর্তির আগে শিক্ষার্থীর ক্লাস, প্রোগ্রাম বা বিষয় আগ্রহ এবং পছন্দের সময় বুঝতে সাহায্য করে।"
                   />
                 )}
@@ -109,10 +116,16 @@ export default async function InterestPage({
 
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <div className="flex gap-3 rounded-2xl border border-border bg-muted/50 p-4">
-                <Info className="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-400" aria-hidden="true" />
+                <Info
+                  className="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-400"
+                  aria-hidden="true"
+                />
                 <div>
                   <p className="text-sm font-semibold">
-                    <LocalizedText en="This is not admission" bn="এটি ভর্তি নয়" />
+                    <LocalizedText
+                      en="This is not admission"
+                      bn="এটি ভর্তি নয়"
+                    />
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     <LocalizedText
@@ -123,10 +136,16 @@ export default async function InterestPage({
                 </div>
               </div>
               <div className="flex gap-3 rounded-2xl border border-border bg-muted/50 p-4">
-                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-400" aria-hidden="true" />
+                <ShieldCheck
+                  className="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-400"
+                  aria-hidden="true"
+                />
                 <div>
                   <p className="text-sm font-semibold">
-                    <LocalizedText en="Structured follow-up" bn="গোছানো ফলো-আপ" />
+                    <LocalizedText
+                      en="Structured follow-up"
+                      bn="গোছানো ফলো-আপ"
+                    />
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     <LocalizedText
@@ -166,6 +185,9 @@ export default async function InterestPage({
           ) : (
             <div className="rounded-[2rem] border border-border bg-card p-5 text-card-foreground shadow-[0_24px_70px_-50px_rgba(15,23,42,.35)] sm:p-7 lg:p-9">
               <PublicInterestForm
+                organizationSlug={slug}
+                organizationName={options?.organization?.name ?? "Outlinerz"}
+                requestId={randomUUID()}
                 classes={classesQ.data ?? []}
                 programs={programsQ.data ?? []}
                 subjects={subjectsQ.data ?? []}
@@ -204,7 +226,10 @@ export default async function InterestPage({
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-8 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <Logo size={76} />
           <p className="text-xs text-muted-foreground">
-            <LocalizedText en="Learning should be easy and enjoyable" bn="শিক্ষা হোক সহজ ও আনন্দময়" />
+            <LocalizedText
+              en="Learning should be easy and enjoyable"
+              bn="শিক্ষা হোক সহজ ও আনন্দময়"
+            />
           </p>
         </div>
       </footer>

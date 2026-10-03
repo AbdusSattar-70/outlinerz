@@ -1,8 +1,25 @@
-import Link from 'next/link';
-import type { ReactNode } from 'react';
-import { requireOrganization } from '@/modules/organizations/server';
-import { signOut } from '@/modules/organizations/actions';
-export default async function DashboardLayout({children}:{children:ReactNode}) {
- const {organization}=await requireOrganization();
- return <div className="min-h-screen bg-background"><header className="border-b"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5"><Link href="/dashboard" className="text-xl font-bold">Outlinerz</Link><div><p className="font-semibold">{organization.name}</p><p className="text-xs text-muted-foreground">{organization.role}</p></div><nav className="flex flex-wrap items-center gap-5 text-sm"><Link href="/dashboard">Home</Link>{['OWNER','ADMIN'].includes(organization.role)&&<Link href="/dashboard/setup">Setup</Link>}<Link href="/organizations">Switch organization</Link><form action={signOut}><button>Sign out</button></form></nav></div></header><main className="mx-auto max-w-6xl px-5 py-8">{children}</main></div>;
+import type { ReactNode } from "react";
+import { requireOrganization } from "@/modules/organizations/server";
+import { WorkspaceShell } from "@/modules/organizations/workspace-shell";
+export default async function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const { db, organization } = await requireOrganization();
+  const { data, error } = await db
+    .from("organization_modules")
+    .select("enabled")
+    .eq("organization_id", organization.id)
+    .eq("module", "CRM")
+    .maybeSingle();
+  if (error) throw new Error("Module settings could not be loaded.");
+  return (
+    <WorkspaceShell
+      organization={organization}
+      crmEnabled={Boolean(data?.enabled)}
+    >
+      {children}
+    </WorkspaceShell>
+  );
 }

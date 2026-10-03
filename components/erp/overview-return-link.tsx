@@ -1,4 +1,5 @@
 "use client";
+import { CrmText } from "@/modules/crm/translations";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 export function OverviewReturnLink() {
@@ -8,7 +9,9 @@ export function OverviewReturnLink() {
       className="mb-3 inline-block text-xs text-muted-foreground underline print:hidden"
       href={path === "/dashboard" ? "/" : "/dashboard"}
     >
-      {path === "/dashboard" ? "← Public website" : "← Back to overview"}
+      <CrmText
+        text={path === "/dashboard" ? "← Public website" : "← Back to overview"}
+      />
     </Link>
   );
 }
