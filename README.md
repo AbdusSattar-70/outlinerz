@@ -1,12 +1,10 @@
-# Lean Modular EduOps — Database Foundation
+# Outlinerz
 
-This branch rebuilds the database from scratch for configurable coaching/tuition operations. Sohoj Academy becomes an organization, with organization-scoped data and modular Academic/CRM/Finance/Business features. Advanced accounting is optional and downstream.
+Organization-aware coaching and tuition operations built with Next.js and Supabase.
 
-**Current phase: new database foundation. Existing Next.js pages, modules and types still target the legacy ERP and are not yet compatible. Do not connect the existing deployment to this database.**
+The applied baseline is `supabase/migrations/01_outlinerz_eduops_baseline.sql`; it is preserved. Start with [Organization onboarding and review](docs/architecture/OUTLINERZ_ONBOARDING.md) for the current app slice and forward migration instructions.
 
-Start with [Fresh database setup](docs/architecture/FRESH_DATABASE_SETUP.md), [Schema contract and limits](docs/architecture/DATABASE_SCHEMA.md), [Handoff](docs/architecture/DEVELOPMENT_HANDOFF.md), [Blueprint](docs/architecture/LEAN_EDUOPS_BLUEPRINT.md), [Bangla workflows](docs/architecture/LEAN_EDUOPS_WORKFLOWS_BN.md), and [Roadmap](docs/architecture/LEAN_EDUOPS_IMPLEMENTATION_PLAN.md).
-
-One newly authored baseline: `supabase/migrations/20261004000000_lean_eduops_baseline.sql`. Historical 01–22 migrations and old-contract tests are removed from this branch, preserved in master/Git history. This baseline requires a new empty Supabase project; it is not a legacy upgrade.
+Implemented entry flow: owner sign-up/sign-in → organization creation or selection → first branch → setup academic years/classes/subjects → scoped dashboard. Legacy modules are awaiting migration; their dashboard routes are held behind the new entry flow. No database reset is needed.
 
 Database checks:
 

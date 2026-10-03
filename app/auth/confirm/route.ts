@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
   return NextResponse.redirect(
     new URL(
-      error ? "/auth/update-password?error=expired" : "/auth/update-password",
+      error ? "/auth/sign-in?error=confirmation" : type === "recovery" || type === "invite" ? "/auth/update-password" : "/dashboard",
       request.url,
     ),
   );

@@ -1,5 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 const db=new PGlite();
 await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
 create schema auth; create table auth.users(id uuid primary key,email text);
@@ -9,16 +9,29 @@ create schema storage; create table storage.buckets(id text primary key,name tex
 create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text); alter table storage.objects enable row level security;
 grant usage on schema storage to authenticated; grant select,insert,update,delete on storage.objects to authenticated;`);
 await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated;');
-const sql=await readFile(new URL('../../supabase/migrations/20261004000000_lean_eduops_baseline.sql',import.meta.url),'utf8').catch(()=>readFile(new URL('../../../supabase/migrations/20261004000000_lean_eduops_baseline.sql',import.meta.url),'utf8'));
-await db.exec(sql);
+const migrationDir = new URL('../../supabase/migrations/',import.meta.url);
+const files = (await readdir(migrationDir)).filter(n=>n.endsWith('.sql')).sort();
+const sql = await readFile(new URL(files[0],migrationDir),'utf8');
+for (const file of files) await db.exec(await readFile(new URL(file,migrationDir),'utf8'));
 console.log('PASS: fresh baseline applies');
 const q=async(s,p=[])=> (await db.query(s,p)).rows;
 let passed=0;
 async function assert(s,label){if(!s)throw Error(label);passed++;console.log('PASS: '+label);}
-async function reject(fn,label){let failed=false;try{await fn();}catch(e){failed=true;}await assert(failed,label);}
+async function reject(fn,label){let failed=false;try{await fn();}catch{failed=true;}await assert(failed,label);}
 const owner='11111111-1111-4111-8111-111111111111', outsider='22222222-2222-4222-8222-222222222222',teacher='33333333-3333-4333-8333-333333333333';
 await db.exec(`insert into auth.users values('${owner}','owner@example.test'),('${outsider}','outsider@example.test'),('${teacher}','teacher@example.test');`);
 async function as(user,role='authenticated'){await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false)",[user]);await db.exec('set role '+role);}
+await as(owner);
+const onboardingRequest=crypto.randomUUID();
+const onboard=(await q('select public.onboard_organization($1,$2,$3,$4) result',[onboardingRequest,'First Institute','first-institute','Central']))[0].result;
+const onboardRetry=(await q('select public.onboard_organization($1,$2,$3,$4) result',[onboardingRequest,'First Institute','first-institute','Central']))[0].result;
+await assert(onboard.organization_id===onboardRetry.organization_id,'owner onboarding retry preserves one organization');
+await assert((await q('select count(*)::int n from public.branches where organization_id=$1',[onboard.organization_id]))[0].n===1,'owner onboarding creates first branch atomically');
+await assert((await q('select role from public.memberships where organization_id=$1 and user_id=$2',[onboard.organization_id,owner]))[0].role==='OWNER','founder receives only new organization ownership');
+await reject(()=>q('select public.onboard_organization($1,$2,$3,$4)',[onboardingRequest,'Changed','first-institute','Central']),'onboarding request input changes rejected');
+await reject(()=>q('select public.onboard_organization($1,$2,$3,$4)',[crypto.randomUUID(),'Second','first-institute','Other']),'existing slug cannot be taken over');
+await as(outsider);
+await assert((await q('select * from public.memberships where organization_id=$1',[onboard.organization_id])).length===0,'organization picker cannot see outsider memberships');
 await as(owner);
 const org=(await q("select public.create_organization('Alpha Tuition','alpha-tuition') id"))[0].id;
 await reject(()=>q('select public.set_member($1,$2,\'TEACHER\',true)',[org,owner]),'last owner protected');

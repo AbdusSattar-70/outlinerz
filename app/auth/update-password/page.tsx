@@ -11,10 +11,6 @@ export default function UpdatePasswordPage() {
     [ready, setReady] = useState(false),
     [pending, setPending] = useState(false);
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("error")) {
-      setMessage("This setup link is expired. Ask the admin to resend it.");
-      return;
-    }
     const db = createClient();
     void (async () => {
       const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -32,6 +28,10 @@ export default function UpdatePasswordPage() {
       const {
         data: { user },
       } = await db.auth.getUser();
+    if (new URLSearchParams(window.location.search).get("error")) {
+      setMessage("This setup link is expired. Ask the admin to resend it.");
+      return;
+    }
       setReady(Boolean(user));
       if (!user)
         setMessage("Open a valid secure account setup or recovery link to continue.");

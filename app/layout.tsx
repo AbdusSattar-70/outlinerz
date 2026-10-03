@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat, Noto_Sans_Bengali } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,22 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { LanguageProvider } from "@/components/providers/language-provider";
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["200", "300", "400", "700"],
-  variable: "--font-en",
-  fallback: ["system-ui", "sans-serif"],
-});
-
-const notoBengali = Noto_Sans_Bengali({
-  subsets: ["bengali"],
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-bn",
-  fallback: ["system-ui", "sans-serif"],
-});
 
 const publicSiteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
@@ -34,48 +17,9 @@ const publicSiteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicSiteUrl),
-  title: { default: "Sohoj Academy", template: "%s | Sohoj Academy" },
-  description:
-    "Sohoj Academy Digital Campus for students, guardians, teachers and academy operations. Learning made easy & fun.",
-  applicationName: "Sohoj Academy",
-  icons: {
-    icon: [
-      { url: "/favicons/favicon.ico", sizes: "any" },
-      {
-        url: "/favicons/favicon-32x32.png",
-        type: "image/png",
-        sizes: "32x32",
-      },
-      {
-        url: "/favicons/favicon-16x16.png",
-        type: "image/png",
-        sizes: "16x16",
-      },
-    ],
-    shortcut: ["/favicons/favicon.ico"],
-    apple: [
-      {
-        url: "/branding/sohoj-academy-icon-192.webp",
-        sizes: "192x192",
-        type: "image/webp",
-      },
-    ],
-  },
-  manifest: "/favicons/site.webmanifest",
-  openGraph: {
-    type: "website",
-    siteName: "Sohoj Academy",
-    title: "Sohoj Academy",
-    description: "Learning made easy & fun",
-    images: [
-      {
-        url: "/branding/sohoj-academy-logo.webp",
-        width: 192,
-        height: 192,
-        alt: "Sohoj Academy",
-      },
-    ],
-  },
+  title: { default: "Outlinerz", template: "%s | Outlinerz" },
+  description: "Simple operations for coaching and tuition organizations.",
+  applicationName: "Outlinerz",
 };
 
 export const viewport: Viewport = {
@@ -87,7 +31,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${notoBengali.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
           forcedTheme="dark"

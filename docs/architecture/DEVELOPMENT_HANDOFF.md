@@ -1,3 +1,11 @@
+# Outlinerz current handoff
+
+See [Organization onboarding](OUTLINERZ_ONBOARDING.md) for the current implementation and local commands. Applied baseline: `01_outlinerz_eduops_baseline.sql` (unchanged). Forward migration: `20261004003000_organization_onboarding.sql`. Active feature branch: `feature/organization-onboarding`.
+
+New landing/auth/organization selection/owner onboarding/dashboard/setup consumers are wired to the new schema. Legacy modules/types remain for later feature slices; their dashboard routes redirect to the implemented home. Do not reset or rename the applied baseline. The validator now discovers the actual migration filenames and exercises the forward migration.
+
+The following is historical database-foundation context, with original repository/filename assumptions. Current Outlinerz instructions above take precedence.
+
 # Lean EduOps development handoff
 
 Active branch: `feature/lean-modular-eduops`.
