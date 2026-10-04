@@ -1,6 +1,5 @@
 "use client";
 
-import { useSite } from "@/modules/crm/site/provider";
 import Image from "next/image";
 
 interface LogoProps {
@@ -16,30 +15,22 @@ export default function Logo({
   className = "",
   variant = "full",
 }: LogoProps) {
-  const site = useSite();
   const isMark = variant === "mark";
 
   return (
     <Image
       src={
-        site
-          ? isMark
-            ? site.mark
-            : site.logo
-          : isMark
-            ? "/branding/sohoj-academy-mark.webp"
-            : "/branding/sohoj-academy-logo.webp"
+        isMark
+          ? "/branding/sohoj-academy-mark.webp"
+          : "/branding/sohoj-academy-logo.webp"
       }
       alt={
-        site
-          ? site.nameEn
-          : isMark
-            ? "Sohoj Academy"
-            : "সহজ একাডেমি — SOHOJ ACADEMY — Learning made easy & fun"
+        isMark
+          ? "Sohoj Academy"
+          : "সহজ একাডেমি — SOHOJ ACADEMY — Learning made easy & fun"
       }
       width={isMark ? 512 : 192}
       height={isMark ? 512 : 192}
-      unoptimized
       priority={priority}
       sizes={`${size}px`}
       style={{ width: size, height: "auto" }}

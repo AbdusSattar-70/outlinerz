@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getErpRoute } from "@/modules/platform/navigation/erp-route-registry";
 
-export function ErpHeader() {
+export function ErpHeader({branchName}:{branchName?:string}) {
   const pathname = usePathname();
   const current = getErpRoute(pathname);
 
@@ -23,6 +23,7 @@ export function ErpHeader() {
           {current?.title ?? "Workspace"}
         </h1>
       </div>
+      <Link href="/branches" className="rounded-lg border px-3 py-2 text-sm font-semibold">{branchName??"Branches"} ↗</Link>
       <Link href="/dashboard/help" aria-label="Open ERP help" title="Help & Workflows" className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <CircleHelp className="size-5" aria-hidden="true" />
       </Link>

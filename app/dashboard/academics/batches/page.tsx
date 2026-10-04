@@ -9,7 +9,7 @@ export default async function BatchesPage() {
   const data = await getAdmissionWorkspace();
   return <div className="space-y-6">
     <PageHeader eyebrow="Academic Setup" title="Batches" description="Manage programme cohorts, seat capacity and placement. Existing admissions keep their batch history when you update a batch." />
-    <p className="text-sm text-muted-foreground"><Link className="underline" href="/dashboard/academics/offerings">Programme Offerings</Link> <span aria-hidden="true">→</span> Fee Plan → Batch → Admission</p>
+    <p className="text-sm text-muted-foreground"><Link className="underline" href="/dashboard/academics/offerings">Programme Offerings</Link> <span aria-hidden="true">→</span> Batch → Admission</p>
     <BatchRegister data={data} canManage={context.permissions.includes("academics.manage")}/>
   </div>;
 }

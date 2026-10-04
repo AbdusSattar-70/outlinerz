@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { admissionCaseDetailSchema, workspaceSchema } from "./schema";
 // Narrow RPC contract until linked database types are regenerated.
 type AdmissionDatabase = Database & {
-  public: {
+  academy: {
     Functions: {
       admission_workspace: { Args: Record<string, never>; Returns: Json };
       admission_offering_options: {

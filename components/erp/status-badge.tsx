@@ -1,5 +1,3 @@
-"use client";
-import { CrmText } from "@/modules/crm/translations";
 import { cn } from "@/lib/utils";
 
 const tones: Record<string, string> = {
@@ -29,8 +27,7 @@ Object.assign(tones, {
   PENDING_PAYMENT: tones.PENDING,
   CANCELLED: tones.REJECTED,
   SUSPENDED: tones.REJECTED,
-  CLOSED_ENROLLMENT:
-    "border-slate-400 bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
+  CLOSED_ENROLLMENT: "border-slate-400 bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
 });
 
 export function StatusBadge({
@@ -44,11 +41,12 @@ export function StatusBadge({
     <span
       className={cn(
         "inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
-        tones[value] ?? "border-border bg-muted text-muted-foreground",
-        className,
+        tones[value] ??
+          "border-border bg-muted text-muted-foreground",
+        className
       )}
     >
-      <CrmText text={value} />
+      {value.replaceAll("_", " ")}
     </span>
   );
 }

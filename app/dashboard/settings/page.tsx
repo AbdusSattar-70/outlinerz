@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/erp/page-header";
 import { RolePermissionEditor } from "@/modules/settings/components/role-permission-editor";
-import { UserAccessEditor } from "@/modules/settings/components/user-access-editor";
 import { requirePermission } from "@/modules/platform/auth/erp-context";
 import { getSettingsOverview } from "@/modules/settings/queries";
 import { can } from "@/types/erp";
@@ -36,13 +35,7 @@ export default async function AccessSecurityPage() {
               description="Academic context, public content and application intake."
             />
           )}
-          {can(context, "finance.view") && (
-            <SetupLink
-              href="/dashboard/finance/fee-plans"
-              title="Fee Plans"
-              description="Current standard charges for each offering."
-            />
-          )}
+
           {can(context, "system.rules.view") && (
             <SetupLink
               href="/dashboard/governance/rules"
@@ -83,7 +76,7 @@ export default async function AccessSecurityPage() {
         </p>
         {canManageUsers ? (
           <div className="rounded-2xl border bg-card p-5 sm:p-6">
-            <UserAccessEditor users={data.accessUsers} roles={data.roles} />
+            <Link href="/branches" className="font-semibold text-primary underline">Manage access to this branch →</Link>
           </div>
         ) : (
           <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">

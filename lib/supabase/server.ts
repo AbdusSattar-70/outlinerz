@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cache } from "react";
 import { boundedFetch } from "./fetch";
-import { cookies } from "next/headers";
+import { headers, cookies } from "next/headers";
 import type { Database } from "@/types/database";
 
 export const createClient = cache(async () => {
@@ -14,7 +14,8 @@ export const createClient = cache(async () => {
   }
 
   const client = createServerClient<Database>(url, key, {
-    global: { fetch: boundedFetch },
+    db: { schema: "academy" },
+    global: { fetch: boundedFetch, headers: { "x-academy-branch": cookieStore.get("academy-branch")?.value ?? "", "x-academy-public-branch": (await headers()).get("x-academy-public-slug") ?? cookieStore.get("academy-public-branch")?.value ?? process.env.NEXT_PUBLIC_BRANCH_SLUG ?? "" } },
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll(cookiesToSet) {

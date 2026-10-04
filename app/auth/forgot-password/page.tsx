@@ -1,11 +1,8 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { CrmText, useCrmText } from "@/modules/crm/translations";
-import { PreferenceControls } from "@/components/shared/preference-controls";
 import { createClient } from "@/lib/supabase/client";
 export default function ForgotPasswordPage() {
-  const tr = useCrmText();
   const [message, setMessage] = useState(""),
     [pending, setPending] = useState(false);
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -33,16 +30,14 @@ export default function ForgotPasswordPage() {
   }
   return (
     <main className="mx-auto max-w-md space-y-5 px-5 py-12">
-      <PreferenceControls compact />
-      <h1 className="text-2xl font-bold">
-        <CrmText text="Recover your password" />
-      </h1>
+      <h1 className="text-2xl font-bold">Recover your password</h1>
       <p className="text-sm text-muted-foreground">
-        <CrmText text="Enter your account email to request a recovery link." />
+        Use your verified staff email. A recovery link does not grant ERP access
+        or change your permissions.
       </p>
       <form onSubmit={submit} className="space-y-4">
         <label className="block text-sm">
-          <CrmText text="Email" />
+          Email
           <input
             name="email"
             type="email"
@@ -56,12 +51,12 @@ export default function ForgotPasswordPage() {
           disabled={pending}
           className="rounded-xl bg-primary px-4 py-3 text-primary-foreground"
         >
-          {tr(pending ? "Requesting…" : "Send recovery link")}
+          {pending ? "Requesting…" : "Send recovery link"}
         </button>
       </form>
-      {message && <p role="status">{tr(message)}</p>}
+      {message && <p role="status">{message}</p>}
       <Link href="/auth/sign-in" className="block underline">
-        <CrmText text="Return to sign in" />
+        Return to sign in
       </Link>
     </main>
   );

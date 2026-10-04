@@ -26,13 +26,14 @@ export type ErpRouteDefinition = {
 };
 
 export const erpRouteRegistry: ErpRouteDefinition[] = [
-  {id:"purchases",title:"Purchases & supplier expenses",eyebrow:"Finance",href:"/dashboard/finance/purchases",navGroup:"Finance",permission:"accounting.expense.manage",icon:"accounting"},
-  {id:"financial-reports",title:"Monthly accounts & period close",eyebrow:"Finance",href:"/dashboard/finance/reports",navGroup:"Finance",permission:"accounting.view",icon:"accounting"},
-  {id:"daily-close",title:"Daily cash & statement close",eyebrow:"Finance",href:"/dashboard/finance/daily-close",navGroup:"Finance",permission:"accounting.reconcile",icon:"accounting"},
-  {id:"payroll",title:"Payroll & payslips",eyebrow:"Finance",href:"/dashboard/finance/payroll",navGroup:"Finance",permission:"workforce.self.view",icon:"accounting"},
+ {id:"branches",title:"Branches",eyebrow:"Academy Setup",href:"/branches",navGroup:"Academy Setup",permission:"dashboard.view",icon:"settings"},
+
+
+
+
   {id:"my-work",title:"My work & attendance",eyebrow:"Workspace",href:"/dashboard/my-work",navGroup:"Workspace",permission:"workforce.self.view",icon:"staff"},
-  {id:"staff-operations",title:"Staff attendance & terms",eyebrow:"People",href:"/dashboard/staff/operations",navGroup:"People",permission:"workforce.manage",icon:"staff"},
-  { id: "referrals", title: "Referrers / My referrals", eyebrow: "People", href: "/dashboard/referrals", navGroup: "People", permission: "referrals.portal.view", icon: "students" },
+  {id:"staff-operations",title:"Staff attendance",eyebrow:"People",href:"/dashboard/staff/operations",navGroup:"People",permission:"workforce.manage",icon:"staff"},
+
   // Workspace
   {
     id: "dashboard",
@@ -131,24 +132,8 @@ export const erpRouteRegistry: ErpRouteDefinition[] = [
   },
 
   // Finance
-  {
-    id: "student-accounts",
-    title: "Student Accounts",
-    eyebrow: "Finance",
-    href: "/dashboard/finance/billing",
-    navGroup: "Finance",
-    permission: "finance.view",
-    icon: "fee-plans",
-  },
-  {
-    id: "accounting",
-    title: "Accounting & Settlements",
-    eyebrow: "Finance",
-    href: "/dashboard/finance/accounting",
-    navGroup: "Finance",
-    permission: "accounting.view",
-    icon: "accounting",
-  },
+
+
 
   // People
   {
@@ -180,15 +165,7 @@ export const erpRouteRegistry: ErpRouteDefinition[] = [
     permission: "academics.view",
     icon: "offerings",
   },
-  {
-    id: "fee-plans",
-    title: "Fee Plans",
-    eyebrow: "Academy Setup",
-    href: "/dashboard/finance/fee-plans",
-    navGroup: "Academy Setup",
-    permission: "finance.view",
-    icon: "fee-plans",
-  },
+
   {
     id: "operating-rules",
     title: "Operating Rules",

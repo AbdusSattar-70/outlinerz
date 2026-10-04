@@ -3,7 +3,6 @@
 import { RecordStateButton } from "@/components/erp/record-state-button";
 import { InlineWorkPanel } from "@/components/erp/inline-work-panel";
 import { useState } from "react";
-import Link from "next/link";
 import { StatusBadge } from "@/components/erp/status-badge";
 import { OfferingForm } from "@/modules/offerings/components/offering-form";
 import { PublicControlsForm } from "@/modules/offerings/components/public-controls-form";
@@ -17,11 +16,9 @@ type Panel =
 export function OfferingRegister({
   data,
   canManage,
-  canViewFees,
 }: {
   data: OfferingOverview;
   canManage: boolean;
-  canViewFees: boolean;
 }) {
   const [notice, setNotice] = useState("");
   const [panel, setPanel] = useState<Panel | null>(null);
@@ -50,14 +47,7 @@ export function OfferingRegister({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {canViewFees && (
-              <Link
-                href="/dashboard/finance/fee-plans"
-                className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-              >
-                View Fee Plans <span aria-hidden="true">→</span>
-              </Link>
-            )}
+
             {canManage && (
               <button
                 type="button"

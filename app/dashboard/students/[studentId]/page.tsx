@@ -50,11 +50,7 @@ export default async function StudentProfilePage({
             Admissions
           </Link>
         )}
-        {can("finance.view") && (
-          <Link className="underline" href="/dashboard/finance/billing">
-            Billing & Adjustments
-          </Link>
-        )}
+
         <StatusBadge value={s.status} />
         {can("students.manage") && canonical && (
           <RecordStateButton
@@ -176,7 +172,7 @@ export default async function StudentProfilePage({
                   <p className="font-semibold">{a.number}</p>
                 )}
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {a.batch} · Fee Plan v{a.feeVersion} · {when(a.createdAt)}
+                  {a.batch} · {when(a.createdAt)}
                 </p>
               </div>
               <StatusBadge value={a.status} />
@@ -272,65 +268,7 @@ export default async function StudentProfilePage({
           </p>
         ))}
       </section>
-      {data.financeVisible && (
-        <section className="space-y-3 rounded-2xl border bg-card p-5">
-          <h2 className="font-semibold">Financial History</h2>
-          <p className="text-sm">
-            Outstanding:{" "}
-            <strong>
-              {money(data.invoices.reduce((sum, i) => sum + i.due, 0))}
-            </strong>{" "}
-            · Customer credit:{" "}
-            <strong>
-              {money(data.invoices.reduce((sum, i) => sum + i.credit, 0))}
-            </strong>
-            . Balances remain separate per invoice.
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="py-2">Invoice / Period</th>
-                  <th>Gross</th>
-                  <th>Credits</th>
-                  <th>Paid</th>
-                  <th>Refunded</th>
-                  <th>Due</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.invoices.map((i) => (
-                  <tr key={i.id} className="border-b">
-                    <td className="py-3">
-                      <Link
-                        className="underline"
-                        href={`/dashboard/finance/billing/${i.id}/print`}
-                      >
-                        {i.number}
-                      </Link>
-                      <span className="block text-xs text-muted-foreground">
-                        {i.period} ·{" "}
-                        {
-                          data.identities.find((s) => s.id === i.studentId)
-                            ?.number
-                        }
-                      </span>
-                    </td>
-                    {[i.gross, i.credits, i.paid, i.refunded, i.due].map(
-                      (amount, n) => (
-                        <td key={n}>{amount.toFixed(2)}</td>
-                      ),
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {!data.invoices.length && (
-            <p className="text-sm text-muted-foreground">No posted invoices.</p>
-          )}
-        </section>
-      )}
+
       {usable && can("students.manage") && (
         <section className="space-y-4 rounded-2xl border p-5">
           <h2 className="font-semibold">Duplicate Identity Review</h2>

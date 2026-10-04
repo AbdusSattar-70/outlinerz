@@ -85,7 +85,7 @@ export const profileSchema = z.object({
       batch: z.string(),
       status: z.string(),
       createdAt: z.string(),
-      feeVersion: z.number(),
+      feeVersion: z.number().nullable(),
     }),
   ),
   batches: z.array(

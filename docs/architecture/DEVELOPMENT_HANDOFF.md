@@ -1,41 +1,56 @@
-CRM content refresh fix: bare public URLs resolve the verified selected organization when no public slug/default is given. Successful management saves refresh same-organization public tabs; public pages also reload on focus. Anonymous deployments still require an explicit public URL or configured default slug. No new migration.
+# Development handoff
 
-Current CRM organization management: `/dashboard/crm/website` preserves the original Sohoj presentation and configures bilingual identity/content, image assets, contacts and offering publication. Apply `04_crm_site_management.sql` after the existing migrations. Database validation: 95 checks. UI validation: 12 mocked browser checks; build/typecheck pass and lint has 16 existing warnings.
+The current branch is `feature/redesign_refactor`. This is a fresh-install schema, not an upgrade replay. Read [Workflow](REDESIGN_REFACTOR_WORKFLOW.md), [Database schema](DATABASE_SCHEMA.md), [Fresh setup](FRESH_DATABASE_SETUP.md), and [Interaction standard](ERP_INTERACTION_WORKFLOW_STANDARD.md).
 
-# Outlinerz current handoff
+There are 15 ordered migrations, 92 application tables and 126 functions. Files 01–13 are the clean baseline; 14 is a forward upgrade for already installed projects. Historical concatenated migrations, dynamic function patches, parallel wrapper RPCs, obsolete public application tables, uploaded-consent storage contracts, public content version queues and generic setting registries are removed. Previous implementations are not archived in this branch.
 
-See [Organization onboarding](OUTLINERZ_ONBOARDING.md) for the current implementation and local commands. Applied baseline: `01_outlinerz_eduops_baseline.sql` (unchanged). Forward migration: `02_organization_onboarding.sql`. Active feature branch: `feature/organization-onboarding`.
+Admin-authorized financial posting, compensation, student transfers and duplicate correction run directly with permission checks and audit evidence. Teacher academic review remains. Public submissions are unverified preferences; direct staff admissions never fabricate a Prospect. Academic directory records are created during setup, not supplied as demo seeds.
 
-Public pages, auth, organization selection/onboarding, dashboard/setup and CRM consumers are wired to the new schema. See [CRM interface](OUTLINERZ_CRM.md) for `03_crm_interface.sql`, public slug configuration and validation. Other legacy modules/types remain for later feature slices; their dashboard routes redirect to the implemented home. Do not reset or rename the applied baseline. The validator now discovers the actual migration filenames and exercises the forward migration.
+The UI uses domain modules, controlled RPC writes and permission-scoped reads. Keep existing public visual styling. Do not add client service-role access or bypass prerequisites to mask errors.
 
-The following is historical database-foundation context, with original repository/filename assumptions. Current Outlinerz instructions above take precedence.
+Validation completed during cleanup: all 13 migrations applied in isolated PostgreSQL-compatible PGlite; the three rollback-only SQL fixtures passed; Next route generation and TypeScript passed. This does not establish hosted Supabase Auth/Storage behavior, production build success or browser acceptance. Follow the local acceptance checklist before deployment.
 
-# Lean EduOps development handoff
+## Current refinement
 
-Active branch: `feature/lean-modular-eduops`.
+Read [Admission/referral/print contract](ADMISSION_REFERRAL_PRINT_REFINEMENT.md) and [Form inventory](ERP_FORM_INVENTORY.md). Referrers have scoped accounts, first-month net-collection acquisition evidence and corrected settlement limits. Collection-time discount/scholarship and payment are one transaction. Staff edit is inline; secondary forms open on demand with pending feedback and preserved invalid input.
 
-The user explicitly requested a database written from scratch instead of installing 01–22. This branch removes that historical migration/test set and installs one newly authored `20261004000000_lean_eduops_baseline.sql`. Master/Git history preserve the old ERP. Do not reset or upgrade a deployed legacy database with this baseline.
+The server shares a request-scoped Supabase client, verifies cookie identity with getUser, and bounds each fetch at 20 seconds without automatically retrying financial writes. Refresh failure must prompt record inspection before retrying a mutation. A Next development Performance.measure warning cannot be assumed fixed without reproducing it locally.
 
-Read [Fresh setup](FRESH_DATABASE_SETUP.md), [New schema and implemented limits](DATABASE_SCHEMA.md), [Product blueprint](LEAN_EDUOPS_BLUEPRINT.md), [Target workflows](LEAN_EDUOPS_WORKFLOWS_BN.md), and [Implementation plan](LEAN_EDUOPS_IMPLEMENTATION_PLAN.md).
+Current verification: all 14 files applied in isolated PGlite; four rollback fixtures passed, including actual refund payout, corrected acquisition balances, immutable/balanced accounting and own-referrer permission checks. TypeScript passed. Actual React print components were rendered and visually inspected: two-page blank admission, one-page example invoice and one-page Bangla acknowledgement. Hosted Auth/email delivery, browser navigation and physical letterhead alignment still require local acceptance. No live database was reset or migrated.
 
-## Implemented database foundation
+## Staff access and audit usability
 
-55 public tenant-owned/application tables plus 2 private helper tables. Organization memberships/module presets, relational academic/CRM/student/business foundations, role/RLS boundaries, composite tenant foreign keys, private storage policy, audit, immutable financial evidence, atomic course/admission, fee payments/refunds, operational expenses/transfers/advances/payables/purchases/assets, teacher session completion and optional event-to-journal projection.
+Read [Secure account setup](ACCOUNT_SETUP_CONFIGURATION.md). Staff requests are verified inside the Staff page; the previous Settings request route redirects there. Setup/recovery uses a shared server-only secret-key client with credential checks and professional locale-specific feedback. Wrong live credentials still require the project administrator to correct the environment and restart/redeploy.
 
-Accounting is OFF by default; operational transactions work without journals. No hard-coded school programme, branch capacity or fee. No digital consent model or admission consent gate. No legacy function patches, renamed wrapper RPCs or concatenated migrations.
+Migration 15 adds audit search, bounded pagination and permission-scoped Bangladesh-day operational totals. Correlation and raw change payloads stay in immutable records, not the operator table. Five isolated SQL fixtures now pass, including paged search/no overlap and protected totals.
 
-## Validation
+## Staff onboarding and own compensation statements
 
-Run `npm --prefix scripts/database ci` then `npm --prefix scripts/database test`. The final validator applies the complete baseline and runs 45 assertions in isolated PGlite, with Supabase Auth/Storage mocked. Default hosted public-table grants are simulated then explicitly revoked. These checks are not hosted Auth/Storage/CLI validation, real concurrent-connection testing, browser acceptance or production deployment. No live project was migrated/reset.
+Apply migration 16 to existing installations without resetting data. See [Referral accounts and staff onboarding](REFERRAL_ACCOUNT_AND_STAFF_ONBOARDING.md). Staff onboarding is request-only; completed account setup appears in request history. Teachers and referrers have own-only financial statements. Manual Staff creation is removed from the UI and revoked at the RPC boundary. Existing ambiguous identities require review; they are never automatically merged.
 
-## App compatibility — must resolve next
+## Paperless finance and workforce branch
 
-**The current Next.js app and generated `types/database.ts` still use the old schema/RPCs. They will not operate against this baseline.** Do not change existing deployment credentials. Build success of that app would not prove compatibility with this new database.
+Branch `feature/finance_accounting_management` extends migration 16. Read [Paperless finance and workforce](PAPERLESS_FINANCE_AND_WORKFORCE.md) before further work. Migration 17 provides actual staff attendance and agreed compensation terms; migration 18 provides assigned work and administrative completion acceptance. My work is the first workspace for non-admin staff, with own-only attendance, tasks and approved finance summaries. Migration 19 now supplies fixed/hourly payroll posting and payslips. Migration 20 supplies daily cash/statement evidence; migration 21 supplies monthly accounts and period controls. Advanced reporting, assets and the other documented gaps remain. Do not confuse configured salary or estimates with posted liabilities.
 
-Next feature: inspect legacy auth/setup and create new organization-aware session/context/onboarding against create_organization, memberships, branches and directory policies. Generate the new TypeScript database contract from a disposable Supabase install, replace affected consumers and verify tenant A/B behavior. Then course UI, direct admission/CRM conversion, operational fee collection and academic/business slices proceed independently. Update roadmap with actual completed app contracts, not merely table presence.
+Accounting action forms now open inline. Client-owned request IDs survive unchanged retries; the server does not generate a new key for every accounting attempt. Validation retains inputs, pending saves prevent closing the form, and signed adjustments can be entered. Uncertain outcomes require checking the record before changing inputs.
 
-Remaining API/product gaps are listed in DATABASE_SCHEMA.md. Specifically: public enquiry endpoint/rate limiting, full teacher roster/reviews/tasks APIs, recurring job, transfer/withdrawal, multi-invoice/unallocated payments, compensation calculation, purchase correction/asset sale, accounting worker/cutover/reconciliation, daily close/reports and full owner UX. Foundations are not claims of completed SaaS functionality.
+## Monthly payroll and payslips
 
-## Evolution
+Migration 19 implements fixed/hourly salary preview, once-only posting, immutable snapshots, own payslips and partial cash/advance settlement. Read the monthly payroll section of [Paperless finance and workforce](PAPERLESS_FINANCE_AND_WORKFORCE.md). Fixed/hourly teaching contracts are excluded from the teaching pool; hybrid participation is explicit. A staff advance creation reference to the removed organization_id column is fixed. Current-month payroll remains provisional, and statutory deductions/historical contract restoration/posted payroll correction are separate remaining work.
 
-Only new EMPTY public schemas can install the baseline; it fails before changing a nonempty public schema. Once this baseline is installed anywhere, append new timestamped migrations for future changes; never silently edit that installation's applied baseline. Hosted CLI/Auth/Storage acceptance and recovery rehearsal must precede release.
+## Daily close evidence
+
+Migration 20 adds cash denomination counts, statement comparison, explained variance, investigation notes, recount-based resolution, reopen and stale detection after later ledger postings. No ledger amount is overwritten and no accounting period is locked by this workflow. Handover receiver acknowledgement and assigned tills remain separate work. See the daily close section of [Paperless finance and workforce](PAPERLESS_FINANCE_AND_WORKFORCE.md).
+
+## Monthly accounts and period lock
+
+Migration 21 supplies monthly P&L, balance sheet, trial balance, cash movement, CSV/print and audited close/reopen. Posting guards enforce closed months on journal headers and lines. Fixed payroll expense is dated at month end; payments retain actual payment dates. Month-end cash/bank/mobile verification and balanced reports are required before close. Read the period-control section of [Paperless finance and workforce](PAPERLESS_FINANCE_AND_WORKFORCE.md).
+
+
+### Next committed delivery: purchases and supplier expense workflow
+
+Migration `22_purchase_drafts_receipt_and_expense_posting.sql` and `/dashboard/finance/purchases` add a paginated/searchable purchase register. On-demand draft creation/edit/cancellation, inline supplier creation, verified full receipt, paid-now expense or supplier payable, and partial supplier payment reuse the current ledger engine. Drafts do not post; finalized evidence cannot be overwritten. Stable request identities, revision checks, active-account permission boundaries and normalized supplier invoice uniqueness protect posting.
+
+SQL fixture `12_purchasing_receipt_supplier_settlement.sql` checks retry safety, stale revision rejection, receipt journals, partial-payment balance, overpayment rejection, duplicate invoice rollback, paid-now treatment, edit/cancel and outsider denial. No live database reset or mutation is part of this delivery.
+
+Next: private expense-document evidence and supplier/category maintenance; then procurement returns/corrections and staff reimbursements. Asset register/capitalization/depreciation follows as a distinct workflow. Monthly period locks already apply to the expense/payable journal calls.

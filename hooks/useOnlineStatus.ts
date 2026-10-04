@@ -8,20 +8,16 @@ export function useOnlineStatus(): Status {
   const [status, setStatus] = useState<Status>(STATUS.ONLINE);
 
   useEffect(() => {
-    let wasOffline = !navigator.onLine;
-    let timer: ReturnType<typeof setTimeout> | undefined;
     const update = () => {
       const isOnline = navigator.onLine;
       onlineManager.setOnline(isOnline);
 
-      if (isOnline && wasOffline) {
+      if (isOnline) {
         setStatus(STATUS.BACK_ONLINE);
-        timer = setTimeout(() => setStatus(STATUS.ONLINE), 2000);
-      } else if (!isOnline) {
-        if (timer) clearTimeout(timer);
+        setTimeout(() => setStatus(STATUS.ONLINE), 2000);
+      } else {
         setStatus(STATUS.OFFLINE);
       }
-      wasOffline = !isOnline;
     };
 
     update();
@@ -29,7 +25,6 @@ export function useOnlineStatus(): Status {
     window.addEventListener(STATUS.OFFLINE, update);
 
     return () => {
-      if (timer) clearTimeout(timer);
       window.removeEventListener(STATUS.ONLINE, update);
       window.removeEventListener(STATUS.OFFLINE, update);
     };

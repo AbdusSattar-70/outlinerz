@@ -15,7 +15,7 @@ import {
 import { runAdmissionCommand } from "../actions";
 const REASON_PRESETS: Partial<Record<AdmissionCommand["action"], string[]>> = {
   FINALIZE: [
-    "Reviewed verified details, placement, fees, referral and signed consent",
+    "Reviewed student identity and academic placement",
   ],
   RETURN_TO_DRAFT: ["Return to draft to correct application details"],
   READY: [
@@ -24,8 +24,8 @@ const REASON_PRESETS: Partial<Record<AdmissionCommand["action"], string[]>> = {
     "Corrected details with guardian present",
   ],
   ACCEPT: [
-    "Accepted after verification and signed paper consent",
-    "Accepted with verified referral and complete file",
+    "Confirmed enrollment after identity and placement verification",
+    "Confirmed enrollment with verified student and guardian details",
   ],
   BILL: ["Posted initial charges from the pinned Fee Plan"],
   ACTIVATE: [
@@ -387,7 +387,7 @@ export function AdmissionCommandForm({
                   return "No ACTIVE programme offering exists. Create and activate one under Academics → Offerings.";
                 }
                 if (data.offerings.every((o) => o.feeReady === false)) {
-                  return "Offerings exist, but none has an effective published Fee Plan. Open Finance → Fee Plans to publish charges.";
+                  return "Review and activate an academic offering before creating an admission.";
                 }
                 const classMatched = data.offerings.filter(
                   (o) => !prospect.classId || o.classId === prospect.classId,
@@ -411,7 +411,7 @@ export function AdmissionCommandForm({
                 if (!prospect) return [];
                 return data.offerings.map((o) => ({
                   id: o.id,
-                  name: `${o.name} · ${o.yearName} · ${o.branchName ?? "No branch"} · ${o.className}${o.feeReady === false ? " · Publish Fee Plan first" : ""}`,
+                  name: `${o.name} · ${o.yearName} · ${o.branchName ?? "No branch"} · ${o.className}${o.feeReady === false ? " · Offering unavailable" : ""}`,
                   disabled: o.feeReady === false,
                 }));
               })(),

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
   return NextResponse.redirect(
     new URL(
-      error ? "/auth/sign-in?error=confirmation" : type === "recovery" || type === "invite" ? "/auth/update-password" : "/dashboard",
+      error ? "/auth/update-password?error=expired" : request.nextUrl.searchParams.get("next")==="/branches"||type==="signup" ? "/branches" : "/auth/update-password",
       request.url,
     ),
   );

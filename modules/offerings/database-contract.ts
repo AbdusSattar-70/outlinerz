@@ -82,16 +82,16 @@ type OfferingSubject = {
   sort_order: number;
 };
 
-type ExtendedDatabase = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Tables" | "Functions"> & {
-    Tables: Database["public"]["Tables"] & {
+type ExtendedDatabase = Omit<Database, "academy"> & {
+  academy: Omit<Database["academy"], "Tables" | "Functions"> & {
+    Tables: Database["academy"]["Tables"] & {
       academic_groups: ReadonlyTable<Group>;
       programme_offerings: ReadonlyTable<Offering>;
       fee_plan_versions: ReadonlyTable<Plan>;
       fee_plan_components: ReadonlyTable<Component>;
       programme_offering_subjects: ReadonlyTable<OfferingSubject>;
     };
-    Functions: Database["public"]["Functions"] & {
+    Functions: Database["academy"]["Functions"] & {
       create_programme_offering: { Args: { p_input: Json }; Returns: Json };
       update_programme_offering: { Args: { p_input: Json }; Returns: Json };
       update_programme_offering_public_controls: {

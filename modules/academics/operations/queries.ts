@@ -7,7 +7,7 @@ import {
   classLogWorkspaceSchema,
 } from "./schema";
 type AcademicDatabase = Database & {
-  public: {
+  academy: {
     Functions: {
       academic_command: { Args: { p_input: Json }; Returns: Json };
       academic_workspace: {

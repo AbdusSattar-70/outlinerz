@@ -136,7 +136,7 @@ export function BatchRegister({
           <div className="p-8 text-center">
             <p className="font-medium">No batches yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Publish a Fee Plan for an offering, then create the first batch.
+              Activate an academic offering, then create the first batch.
             </p>
             {canManage && (
               <button

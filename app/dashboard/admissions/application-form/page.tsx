@@ -13,8 +13,8 @@ export default async function BlankApplication() {
         <div>
           <h1 className="text-2xl font-bold">Two-page admission form</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            A4 · Page 1 for family details · Page 2 for consent, office use and
-            detachable money receipt. Enter the signed paper later; the system
+            A4 · Page 1 for family details · Page 2 for consent and academic
+            verification. Enter the signed paper later; the system
             assigns the Student ID.
           </p>
         </div>

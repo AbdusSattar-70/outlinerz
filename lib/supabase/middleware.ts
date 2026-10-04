@@ -33,12 +33,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && (request.nextUrl.pathname.startsWith("/dashboard") || ["/onboarding", "/organizations"].includes(request.nextUrl.pathname))) {
+  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/sign-in";
-    const redirectResponse = NextResponse.redirect(url);
-    response.cookies.getAll().forEach(cookie => redirectResponse.cookies.set(cookie));
-    return redirectResponse;
+    return NextResponse.redirect(url);
   }
 
   return response;

@@ -9,14 +9,14 @@ const caseGroups = {
   open: {
     label: "In progress",
     description:
-      "Cases still requiring verification, acceptance, billing or enrollment.",
+      "Cases still requiring verification and academic enrollment.",
     matches: (status: string) =>
       !["ACTIVE_ENROLLMENT", "CANCELLED", "CLOSED_ENROLLMENT"].includes(status),
   },
   completed: {
     label: "Enrolled",
     description:
-      "Admissions with an active enrollment. Outstanding fees remain visible in Student Accounts.",
+      "Admissions with an active academic enrollment.",
     matches: (status: string) => status === "ACTIVE_ENROLLMENT",
   },
   closed: {
@@ -33,9 +33,9 @@ function nextCaseStep(status: string) {
     case "DRAFT":
       return "Verify application";
     case "READY":
-      return "Complete checks and accept";
+      return "Confirm academic enrollment";
     case "ACCEPTED":
-      return "Post initial bill";
+      return "Review record";
     case "BILLING_POSTED":
     case "PENDING_PAYMENT":
       return "Activate enrollment";

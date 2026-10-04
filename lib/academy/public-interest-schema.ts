@@ -4,13 +4,7 @@ const optionalPhone = z.string().trim().max(30).optional();
 
 export const publicInterestSchema = z
   .object({
-    studentMobile: z
-      .string()
-      .regex(/^$|^01[3-9][0-9]{8}$/)
-      .optional(),
-    studentEmail: z.union([z.email(), z.literal("")]).optional(),
-    presentLandmark: z.string().max(160).optional(),
-    permanentSameAsPresent: z.boolean().optional(),
+    studentMobile:z.string().regex(/^$|^01[3-9][0-9]{8}$/).optional(),studentEmail:z.union([z.email(),z.literal("")]).optional(),presentLandmark:z.string().max(160).optional(),permanentSameAsPresent:z.boolean().optional(),
     dateOfBirth: z.string().trim().max(300).optional(),
     gender: z.string().trim().max(300).optional(),
     schoolRoll: z.string().trim().max(300).optional(),
@@ -54,7 +48,10 @@ export const publicInterestSchema = z
       .optional(),
     referralNote: z.string().trim().max(240).optional(),
     notes: z.string().trim().max(500).optional(),
-    consentToContact: z.boolean().default(false),
+    consentToContact: z.boolean().refine((value) => value, {
+      message:
+        "Please allow Sohoj Academy to contact you about this interest request.",
+    }),
     website: z.string().max(0).optional(),
     offeringId: z.string().uuid().optional(),
     intent: z.enum(["interest", "admission"]).default("interest"),
@@ -78,6 +75,14 @@ export const publicInterestSchema = z
           code: "custom",
           path: ["guardianAddress"],
           message: "Enter the guardian's address.",
+        });
+      }
+      if (!value.requirementsAcknowledged || !value.policyAcknowledged) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["requirementsAcknowledged"],
+          message:
+            "Review and acknowledge the programme requirements and admission policy.",
         });
       }
     }

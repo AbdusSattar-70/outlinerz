@@ -6,11 +6,9 @@ import { createOfferingClient } from "@/modules/offerings/database-contract";
 import {
   createOfferingSchema,
   updateOfferingSchema,
-  publishFeePlanSchema,
   updateOfferingPublicControlsSchema,
   type CreateOfferingInput,
   type UpdateOfferingInput,
-  type PublishFeePlanInput,
   type UpdateOfferingPublicControlsInput,
 } from "@/modules/offerings/schema";
 
@@ -53,7 +51,6 @@ export async function createProgrammeOffering(
   if (!result?.offering_id)
     return { ok: false, error: "Offering creation returned no identity." };
   revalidatePath("/dashboard/academics/offerings");
-  revalidatePath("/dashboard/finance/fee-plans");
   return { ok: true, reference: result.offering_id };
 }
 
@@ -96,58 +93,10 @@ export async function updateProgrammeOffering(
     "/dashboard/academics/offerings",
     "/dashboard/academics/batches",
     "/dashboard/admissions",
-    "/dashboard/finance/fee-plans",
     "/",
   ])
     revalidatePath(path);
   return { ok: true, reference: result.offering_id };
-}
-
-export async function publishFeePlan(
-  input: PublishFeePlanInput,
-): Promise<OfferingMutationResult> {
-  const parsed = publishFeePlanSchema.safeParse(input);
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return {
-      ok: false,
-      error: issue?.message ?? "Check the Fee Plan.",
-      field: issue?.path[0]?.toString(),
-    };
-  }
-  const context = await getErpContext();
-  if (!context?.permissions.includes("finance.billing.manage")) {
-    return { ok: false, error: "You are not authorized to publish Fee Plans." };
-  }
-  const value = parsed.data;
-  const db = await createOfferingClient();
-  const { data, error } = await (
-    db as unknown as import("@supabase/supabase-js").SupabaseClient
-  ).rpc("save_fee_plan", {
-    p_input: {
-      offering_id: value.offeringId,
-      billing_cycle: value.billingCycle,
-      due_day: value.dueDay,
-      effective_from: value.effectiveFrom,
-      reason: value.reason,
-      components: value.components.map((component, sortOrder) => ({
-        code: component.code,
-        name: component.name,
-        amount: component.amount,
-        charge_type: component.chargeType,
-        recurrence: component.recurrence,
-        sort_order: sortOrder,
-      })),
-    },
-  });
-  if (error) return { ok: false, error: error.message };
-  const result = data as { fee_plan_id?: string } | null;
-  if (!result?.fee_plan_id)
-    return { ok: false, error: "Fee Plan publish returned no identity." };
-  revalidatePath("/dashboard/academics/offerings");
-  revalidatePath("/dashboard/finance/fee-plans");
-  revalidatePath("/");
-  return { ok: true, reference: result.fee_plan_id };
 }
 
 export async function updateProgrammeOfferingPublicControls(

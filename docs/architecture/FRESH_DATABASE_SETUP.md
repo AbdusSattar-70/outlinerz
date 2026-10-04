@@ -1,81 +1,65 @@
-# Fresh Lean EduOps database setup
+# Fresh database setup
 
-Branch: `feature/lean-modular-eduops`. This branch now contains one newly authored baseline: `20261004000000_lean_eduops_baseline.sql`. Historical migrations 01–22 and their old-contract test fixtures are removed from this branch. They remain in Git history/master.
+This branch replaces the old migration history. All existing application data is test data and its reset is authorized. The earlier project implementation exists on another branch; this branch contains no archive.
 
-**Database contract changed. Existing Next.js pages, modules and `types/database.ts` still target the legacy contract and are not compatible with this database yet. Do not point the current app/production deployment at it.** This phase installs and validates the new database foundation; app integration is a separate next delivery.
-
-## Pull
-
-From your existing repository, preserve any uncommitted changes before switching:
+## Get the branch
 
 ```bash
-git status
 git fetch origin
-git switch feature/lean-modular-eduops
-git pull --ff-only origin feature/lean-modular-eduops
-pnpm install --frozen-lockfile
+git switch feature/redesign_refactor
+git pull --ff-only
+pnpm install
+cp .env.example .env.local
 ```
 
-If the branch does not exist locally, use `git switch --track origin/feature/lean-modular-eduops` instead of the switch command above.
+Fill your project URL, publishable key, site origin and server-only secret key (or legacy service-role key). Never commit .env.local.
 
-## New hosted project
+## Choose your database installation
 
-Create a NEW Supabase project in the Dashboard. This baseline deliberately rejects a nonempty public schema. It is not an upgrade and contains no destructive reset/drop of your old project.
+For a brand-new Supabase project, link it and install the baseline:
 
 ```bash
-pnpm exec supabase login
-pnpm exec supabase link --project-ref YOUR_NEW_PROJECT_REF
-pnpm exec supabase db push --dry-run
+pnpm exec supabase link --project-ref YOUR_PROJECT_REF
 pnpm exec supabase db push
+```
+
+For your existing test project, link the intended project and reset its application schema from this branch:
+
+```bash
+pnpm exec supabase link --project-ref YOUR_PROJECT_REF
+pnpm exec supabase db reset --linked
 pnpm exec supabase migration list
 ```
 
-The history should contain only `20261004000000`. Stop on errors; do not repair/mark the old migration history to pretend this baseline was applied. Future changes after this baseline is deployed still need normal additive migrations; one clean baseline does not mean forever editing installed SQL.
+The linked reset is destructive for application data. Do not use db push against the old schema, or mark old/new files applied via migration repair. All local migration files (01–16) should match the new remote history after a fresh install. If a CLI reset reports an error, stop and inspect it before bootstrapping.
 
-Copy `.env.example` to a separate development environment file and fill the NEW project's URL and keys when app integration is ready. Do not replace the production environment yet. Secret/service keys stay server-only. This schema creates the private `eduops-documents` storage bucket.
+Supabase-managed Auth identities and Storage contents are separate from the application schema. Delete unwanted test Auth users and unused uploaded-consent objects/buckets through their Supabase management APIs/dashboard if a completely empty service is required. Custom database roles may also survive a remote reset. Alternatively a newly created project starts without these leftovers. Never manually delete Storage metadata while leaving its objects behind.
 
-## Local database option
+Local-only development: start Docker, then run pnpm exec supabase start and pnpm exec supabase db reset (without --linked). Use the local project credentials shown by the CLI.
 
-With Docker running:
+## Updating an already installed clean baseline
 
-```bash
-pnpm exec supabase start
-pnpm exec supabase db reset --local
-pnpm exec supabase migration list --local
-pnpm exec supabase status
-```
+If migrations 01–13 are already applied, keep the database and run `pnpm exec supabase db push` to apply migrations 14–15. Do not reset the database for this refinement. It preserves admissions, posted charges/payments, journals and previous referral evidence. Configure `/dashboard/governance/rules` and manage verified accounts through `/dashboard/referrals`.
 
-`db reset --local` deletes local test database data and rebuilds this baseline. It does not reset the hosted project. Local Studio is normally `http://127.0.0.1:54323`; use the actual address printed by the CLI.
+## Bootstrap and operate
 
-## First organization/owner
-
-Create a confirmed Auth user in the NEW project's Authentication dashboard (or local Studio). Then run this in that project's SQL Editor, replacing the email and organization identity:
+Create your own Auth user in Supabase Authentication. In the project's SQL Editor run:
 
 ```sql
-begin;
-do $$
-declare u uuid; o uuid;
-begin
- select id into strict u from auth.users where lower(email)=lower('YOUR_ADMIN_EMAIL');
- perform set_config('request.jwt.claim.sub',u::text,true);
- o := public.create_organization('Sohoj Academy','sohoj-academy');
- insert into public.branches(organization_id,name,code)
- values(o,'Gopalpur','GOPALPUR');
-end $$;
-commit;
+select public.bootstrap_admin('YOUR_ADMIN_EMAIL', 'YOUR_NAME');
 ```
 
-This creates ownership only for this new organization. It does not grant platform-wide access. Accounting is disabled by default; CRM/Academic/Finance/Business are enabled. No school-specific fees, classes, programmes, capacity, demo students or chart of accounts are seeded. Re-running this block with the same slug rejects instead of duplicating the organization. Do not use the old `bootstrap_admin` RPC; it no longer exists in this contract.
+Sign in, complete /dashboard/setup, then operate admissions. Create academic years/classes/subjects/programmes yourself; multiple academic years may be active. Configure standard fees, permitted discounts and batches before admitting students.
 
-## Reproducible isolated database checks
-
-From repository root:
+Staff requests access through /auth/sign-up. Verify their actual responsibilities, assign permissions and send the server-side Supabase invitation. Configure Site URL and allowed redirects <origin>/auth/confirm and <origin>/auth/update-password. Invite/recovery templates can use /auth/confirm?token_hash={{ .TokenHash }}&type=invite or type=recovery. Keep secure email-change confirmation enabled.
 
 ```bash
-npm --prefix scripts/database ci
-npm --prefix scripts/database test
+pnpm build
+pnpm dev
 ```
 
-The validator installs the baseline in an isolated PGlite PostgreSQL engine with mocked Supabase Auth/Storage tables. It exercises authorization, tenant references, atomic course/admission, capacity rejection, stable retries, accounting-off operational finance, refunds/advances/assets, teacher sessions, assessment integrity and accounting projection controls. It also simulates Supabase's auto-granted public table defaults and verifies explicit revocation.
+Follow [Local acceptance](REDESIGN_LOCAL_ACCEPTANCE.md). No live project reset, email delivery or printer validation was performed by this cleanup.
 
-Hosted Supabase Auth, real Storage HTTP uploads, CLI installation, multiple concurrent connections and frontend acceptance remain required before release. Passing isolated tests does not establish app compatibility.
+Official references: [Supabase CLI](https://supabase.com/docs/reference/cli/supabase-db-reset), [Migrations](https://supabase.com/docs/guides/deployment/database-migrations).
+
+For account email setup, follow [Secure account setup](ACCOUNT_SETUP_CONFIGURATION.md). Do not reset a clean installed database for migrations 14–15.

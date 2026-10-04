@@ -338,7 +338,7 @@ export function PublicControlsForm({
           id={`${offering.id}-policy`}
           label="Admission policy (English)"
           className="sm:col-span-2"
-          hint="Explain verification, placement and when admission becomes confirmed. Fees remain governed by the published plan."
+          hint="Explain verification, placement and when admission becomes confirmed. Academic enrollment follows staff verification."
           error={errors.admissionPolicy?.message}
         >
           {({ id, describedBy, invalid }) => (
@@ -502,7 +502,7 @@ export function PublicControlsForm({
         </Button>
         {!isActive && (
           <p className="text-xs text-muted-foreground">
-            Publish a Fee Plan so this offering becomes ACTIVE before enabling
+            Activate this offering before enabling
             website visibility.
           </p>
         )}

@@ -143,10 +143,9 @@ export function StaffAdmissionIntakeForm({
             Enter applicant details with the student or guardian
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            This creates an admission application and draft case directly. It
-            does not create a CRM Enquiry. Staff can complete this on the
-            family’s behalf; it does not accept admission, post fees, or
-            activate enrollment.
+            This records an enquiry and an admission draft together. Staff can
+            complete this on the family’s behalf, then review the identity and
+            academic placement before enrollment.
           </p>
         </header>
 
@@ -171,14 +170,13 @@ export function StaffAdmissionIntakeForm({
                   >
                     {row.code} · {row.name} · {row.yearName} ·{" "}
                     {row.branchName ?? "No branch"} · {row.className}
-                    {row.feeReady === false ? " · Publish Fee Plan first" : ""}
+                    {row.feeReady === false ? " · Offering unavailable" : ""}
                   </option>
                 ))}
               </select>
               <span className="block text-xs text-muted-foreground">
-                Active offerings appear here. Publish an effective Fee Plan to
-                enable selection; the class is assigned from the chosen
-                offering.
+                Active academic offerings appear here. The class is assigned from
+                the chosen offering.
               </span>
             </label>
             <label className="block space-y-1.5 text-sm">
@@ -207,8 +205,7 @@ export function StaffAdmissionIntakeForm({
           {offering && (
             <p className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground">
               Placement: {offering.className} · {offering.yearName} ·{" "}
-              {offering.branchName ?? "No branch"}. Fee terms are inherited from
-              the current published Fee Plan and shown on the draft for review.
+              {offering.branchName ?? "No branch"}. Review the selected academic placement before enrollment.
             </p>
           )}
         </section>
@@ -363,8 +360,8 @@ export function StaffAdmissionIntakeForm({
             />
             <span>
               The guardian gave permission for Sohoj Academy to contact them
-              about this student. Signed admission consent is collected
-              separately before acceptance.
+              about this student. Keep signed documents according to the
+              academy’s admissions policy.
             </span>
           </label>
         </section>
@@ -396,7 +393,7 @@ export function StaffAdmissionIntakeForm({
             Save draft for later
           </Button>
           <span className="text-xs text-muted-foreground">
-            No CRM Enquiry is created, no fee is charged, and no enrollment is
+            An enquiry and admission draft are recorded together; no enrollment is
             activated at this step.
           </span>
         </div>
@@ -406,7 +403,7 @@ export function StaffAdmissionIntakeForm({
           <h3 className="text-xl font-semibold">Review applicant details</h3>
           <p className="text-sm text-muted-foreground">
             Confirm this information before saving the admission draft. Final
-            fees and consent follow on the case page.
+            review and enrollment follow on the case page.
           </p>
           <dl className="grid gap-3 sm:grid-cols-2">
             {Object.entries(review)

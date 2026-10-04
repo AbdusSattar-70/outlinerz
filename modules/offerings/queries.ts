@@ -11,53 +11,21 @@ export async function getOfferingOverview() {
   const db = await createOfferingClient();
   const base = await createClient();
   const [
-    offeringsQ,
-    groupsQ,
-    yearsQ,
-    branchesQ,
-    classesQ,
-    programsQ,
-    plansQ,
-    componentsQ,
-    subjectsQ,
+    offeringsQ, groupsQ, yearsQ, branchesQ, classesQ, programsQ,
+    plansQ, componentsQ, subjectsQ,
   ] = await Promise.all([
-    db
-      .from("programme_offerings")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    db
-      .from("academic_groups")
-      .select("id,code,name")
-      .eq("is_active", true)
-      .order("name"),
-    base
-      .from("academic_years")
-      .select("id,name,is_active")
-      .order("starts_on", { ascending: false }),
+    db.from("programme_offerings").select("*").order("created_at", { ascending: false }),
+    db.from("academic_groups").select("id,code,name").eq("is_active", true).order("name"),
+    base.from("academic_years").select("id,name,is_active").order("starts_on", { ascending: false }),
     base.from("branches").select("id,name").eq("is_active", true).order("name"),
-    base
-      .from("classes")
-      .select("id,name,sort_order")
-      .eq("is_active", true)
-      .order("sort_order"),
+    base.from("classes").select("id,name,sort_order").eq("is_active", true).order("sort_order"),
     base.from("programs").select("id,name").eq("is_active", true).order("name"),
-    db
-      .from("fee_plan_versions")
-      .select("*")
-      .order("version", { ascending: false }),
-    db.from("fee_plan_components").select("*").order("sort_order"),
-    base
-      .from("subjects")
-      .select("id,code,name")
-      .eq("is_active", true)
-      .order("name"),
+    Promise.resolve({data:[] as never[],error:null}),
+    Promise.resolve({data:[] as never[],error:null}),
+    base.from("subjects").select("id,code,name").eq("is_active", true).order("name"),
   ]);
 
-  let offeringSubjects: {
-    offering_id: string;
-    subject_id: string;
-    sort_order: number;
-  }[] = [];
+  let offeringSubjects: { offering_id: string; subject_id: string; sort_order: number }[] = [];
   try {
     const offeringSubjectsQ = await db
       .from("programme_offering_subjects")
@@ -123,33 +91,17 @@ export type PublicOfferingCard = {
   fee_plan: {
     billing_cycle: string;
     currency_code: string;
-    components: {
-      code: string;
-      name: string;
-      amount: number;
-      charge_type: string;
-      recurrence: string;
-    }[];
+    components: { code: string; name: string; amount: number; charge_type: string; recurrence: string }[];
   } | null;
 };
 
 /** ACTIVE + website-visible offerings. Null means the catalogue could not be loaded. */
-export async function getPublicProgrammeOfferings(
-  slug?: string,
-): Promise<PublicOfferingCard[] | null> {
+export async function getPublicProgrammeOfferings(): Promise<PublicOfferingCard[] | null> {
   try {
-    const { organizationClient } = await import(
-      "@/modules/organizations/server"
-    );
-    const { resolvePublicSlug } = await import("@/modules/crm/public");
-    const resolved = await resolvePublicSlug(slug);
-    if (!resolved) return [];
-    const db = await organizationClient();
-    const { data, error } = await db.rpc("crm_public_catalogue", {
-      p_slug: resolved,
-    });
+    const db = await createOfferingClient();
+    const { data, error } = await db.rpc("list_public_programme_offerings");
     if (error || !Array.isArray(data)) return null;
-    return data;
+    return data as PublicOfferingCard[];
   } catch {
     return null;
   }

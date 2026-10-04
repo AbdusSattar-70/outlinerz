@@ -34,7 +34,6 @@ export default async function AdmissionDocument({
       </div>
       <AdmissionPaper
         data={a}
-        receiptOnly={receipt}
         catalogue={catalogue} academyName={setup.academyName}
       />
     </div>

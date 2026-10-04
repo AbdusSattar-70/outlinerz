@@ -1,5 +1,5 @@
 "use client";
-import { CrmText, useCrmText } from "@/modules/crm/translations";
+import { finishWorkflow } from "@/modules/platform/navigation/workflow-return";
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -150,7 +150,6 @@ function rowsFor(entity: MasterEntity, data: ManageCrmOverview): Row[] {
 
 function emptyDefaults(entity: MasterEntity): ManageMasterRecordInput {
   return {
-    requestId: crypto.randomUUID(),
     entity,
     id: "",
     code: "",
@@ -168,7 +167,6 @@ function emptyDefaults(entity: MasterEntity): ManageMasterRecordInput {
 
 function fromRow(entity: MasterEntity, row: Row): ManageMasterRecordInput {
   return {
-    requestId: crypto.randomUUID(),
     entity,
     id: row.id,
     code: row.code ?? "",
@@ -191,8 +189,6 @@ export function MasterDataWorkspace({
   data: ManageCrmOverview;
   canManage: boolean;
 }) {
-  const tr = useCrmText();
-
   const [entity, setEntity] = useState<MasterEntity>("class");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -219,7 +215,7 @@ export function MasterDataWorkspace({
                 : "bg-background hover:bg-muted"
             }`}
           >
-            {tr(item.title)}
+            {item.title}
           </button>
         ))}
       </div>
@@ -227,15 +223,14 @@ export function MasterDataWorkspace({
       <section className="rounded-2xl border bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="font-semibold">{tr(section.title)}</h2>
+            <h2 className="font-semibold">{section.title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {tr(section.description)}
+              {section.description}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-muted-foreground">
-              {rows.length}
-              <CrmText text="records" />{" "}
+              {rows.length} records
             </p>
             {canManage && (
               <button
@@ -248,9 +243,7 @@ export function MasterDataWorkspace({
                 }}
                 className="rounded-lg border px-4 py-2 text-sm"
               >
-                {formOpen && !editingId
-                  ? tr("Close create form")
-                  : tr("Create record")}
+                {formOpen && !editingId ? "Close create form" : "Create record"}
               </button>
             )}
           </div>
@@ -261,36 +254,14 @@ export function MasterDataWorkspace({
             <thead>
               <tr className="border-b bg-muted/40">
                 {entity !== "academic_year" && entity !== "school" && (
-                  <th className="p-3">
-                    <CrmText text="Code" />{" "}
-                  </th>
+                  <th className="p-3">Code</th>
                 )}
-                <th className="p-3">
-                  <CrmText text="Name" />{" "}
-                </th>
-                {entity === "academic_year" && (
-                  <th className="p-3">
-                    <CrmText text="Dates" />{" "}
-                  </th>
-                )}
-                {entity === "class" && (
-                  <th className="p-3">
-                    <CrmText text="Sort" />{" "}
-                  </th>
-                )}
-                {entity === "school" && (
-                  <th className="p-3">
-                    <CrmText text="Verified" />{" "}
-                  </th>
-                )}
-                <th className="p-3">
-                  <CrmText text="Status" />{" "}
-                </th>
-                {canManage && (
-                  <th className="p-3">
-                    <CrmText text="Actions" />{" "}
-                  </th>
-                )}
+                <th className="p-3">Name</th>
+                {entity === "academic_year" && <th className="p-3">Dates</th>}
+                {entity === "class" && <th className="p-3">Sort</th>}
+                {entity === "school" && <th className="p-3">Verified</th>}
+                <th className="p-3">Status</th>
+                {canManage && <th className="p-3">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -321,12 +292,10 @@ export function MasterDataWorkspace({
                     <td className="p-3">
                       {row.is_verified ? (
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                          <CrmText text="Verified" />{" "}
+                          Verified
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">
-                          <CrmText text="Pending" />{" "}
-                        </span>
+                        <span className="text-muted-foreground">Pending</span>
                       )}
                     </td>
                   )}
@@ -346,7 +315,7 @@ export function MasterDataWorkspace({
                           setNotice("");
                         }}
                       >
-                        <CrmText text="Edit" />{" "}
+                        Edit
                       </button>
                     </td>
                   )}
@@ -355,7 +324,7 @@ export function MasterDataWorkspace({
               {!rows.length && (
                 <tr>
                   <td className="p-6 text-sm text-muted-foreground" colSpan={6}>
-                    <CrmText text="No records yet. Click Create record to add the first entry." />{" "}
+                    No records yet. Click Create record to add the first entry.
                   </td>
                 </tr>
               )}
@@ -365,7 +334,7 @@ export function MasterDataWorkspace({
 
         {notice && (
           <p role="status" className="mt-4 rounded-lg border p-3 text-sm">
-            {tr(notice)}
+            {notice}
           </p>
         )}
         {canManage && formOpen && (
@@ -410,8 +379,6 @@ function MasterRecordForm({
   onCancelEdit: () => void;
   onSuccess: (text: string) => void;
 }) {
-  const tr = useCrmText();
-
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
@@ -436,11 +403,7 @@ function MasterRecordForm({
   const submit = handleSubmit((input) => {
     setMessage(null);
     startTransition(async () => {
-      const result = await manageCrmMasterRecord(input).catch(() => ({
-        ok: false as const,
-        error: "Could not save. Please retry.",
-        field: undefined,
-      }));
+      const result = await manageCrmMasterRecord(input);
       if (!result.ok) {
         if (result.field) {
           setError(result.field as FieldPath<ManageMasterRecordInput>, {
@@ -462,7 +425,7 @@ function MasterRecordForm({
           ? "Master record updated. History remains available."
           : "Master record created.",
       );
-      router.refresh();
+      finishWorkflow(router);
     });
   });
 
@@ -470,7 +433,7 @@ function MasterRecordForm({
     <form onSubmit={submit} className="mt-6 space-y-4 border-t pt-6" noValidate>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-semibold">
-          {isEdit ? tr("Edit record") : tr("Create record")}
+          {isEdit ? "Edit record" : "Create record"}
         </h3>
         {
           <button
@@ -481,12 +444,11 @@ function MasterRecordForm({
               onCancelEdit();
             }}
           >
-            <CrmText text="Close editor" />{" "}
+            Close editor
           </button>
         }
       </div>
 
-      <input type="hidden" {...register("requestId")} />
       <input type="hidden" {...register("entity")} />
       <input type="hidden" {...register("id")} />
 
@@ -494,11 +456,9 @@ function MasterRecordForm({
         {entity !== "academic_year" && entity !== "school" && (
           <ErpFormField
             id={`${entity}-code`}
-            label={tr("Code")}
+            label="Code"
             required
-            hint={tr(
-              "Stable identifier used in integrations and uniqueness checks.",
-            )}
+            hint="Stable identifier used in integrations and uniqueness checks."
             error={errors.code?.message}
           >
             {({ id, describedBy, invalid }) => (
@@ -516,7 +476,7 @@ function MasterRecordForm({
 
         <ErpFormField
           id={`${entity}-name`}
-          label={tr("Name")}
+          label="Name"
           required
           error={errors.name?.message}
         >
@@ -536,7 +496,7 @@ function MasterRecordForm({
           <>
             <ErpFormField
               id={`${entity}-starts`}
-              label={tr("Starts on")}
+              label="Starts on"
               required
               error={errors.startsOn?.message}
             >
@@ -554,7 +514,7 @@ function MasterRecordForm({
             </ErpFormField>
             <ErpFormField
               id={`${entity}-ends`}
-              label={tr("Ends on")}
+              label="Ends on"
               required
               error={errors.endsOn?.message}
             >
@@ -576,8 +536,8 @@ function MasterRecordForm({
         {entity === "class" && (
           <ErpFormField
             id={`${entity}-sort`}
-            label={tr("Sort order")}
-            hint={tr("Lower numbers appear first in forms.")}
+            label="Sort order"
+            hint="Lower numbers appear first in forms."
             error={errors.sortOrder?.message}
           >
             {({ id, describedBy, invalid }) => (
@@ -599,7 +559,7 @@ function MasterRecordForm({
         {entity === "program" && (
           <ErpFormField
             id={`${entity}-description`}
-            label={tr("Description")}
+            label="Description"
             className="sm:col-span-2"
             error={errors.description?.message}
           >
@@ -621,8 +581,8 @@ function MasterRecordForm({
           <>
             <ErpFormField
               id={`${entity}-area`}
-              label={tr("Area")}
-              hint={tr("Optional location grouping.")}
+              label="Area"
+              hint="Optional location grouping."
               error={errors.areaId?.message}
             >
               {({ id, describedBy, invalid }) => (
@@ -634,9 +594,7 @@ function MasterRecordForm({
                   disabled={pending}
                   {...register("areaId")}
                 >
-                  <option value="">
-                    <CrmText text="No area" />{" "}
-                  </option>
+                  <option value="">No area</option>
                   {areas.map((area) => (
                     <option key={area.id} value={area.id}>
                       {area.name}
@@ -652,7 +610,7 @@ function MasterRecordForm({
                 disabled={pending}
                 {...register("isVerified")}
               />
-              <CrmText text="Verified school directory entry" />{" "}
+              Verified school directory entry
             </label>
           </>
         )}
@@ -665,16 +623,16 @@ function MasterRecordForm({
             {...register("isActive")}
           />
           {entity === "academic_year"
-            ? tr("Active academic year")
-            : tr("Active for new applications")}
+            ? "Active academic year"
+            : "Active for new applications"}
         </label>
 
         <ErpFormField
           id={`${entity}-reason`}
-          label={tr("Reason")}
+          label="Reason"
           required
           className="sm:col-span-2"
-          hint={tr("Recorded in the audit trail.")}
+          hint="Recorded in the audit trail."
           error={errors.reason?.message}
         >
           {({ id, describedBy, invalid }) => (
@@ -684,7 +642,7 @@ function MasterRecordForm({
               aria-invalid={invalid}
               className={controlClass}
               disabled={pending}
-              placeholder={tr("e.g. Opening 2026 academic year")}
+              placeholder="e.g. Opening 2026 academic year"
               {...register("reason")}
             />
           )}
@@ -693,14 +651,11 @@ function MasterRecordForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={!isDirty || !isValid || pending}>
-          {pending
-            ? tr("Saving…")
-            : isEdit
-              ? tr("Save changes")
-              : tr("Create record")}
+          {pending ? "Saving\u2026" : isEdit ? "Save changes" : "Create record"}
         </Button>
         <p className="text-xs text-muted-foreground">
-          <CrmText text="Records are deactivated, not deleted, so historical admissions stay readable." />{" "}
+          Records are deactivated, not deleted, so historical admissions stay
+          readable.
         </p>
       </div>
       <ErpFormStatus message={message} />

@@ -30,12 +30,11 @@ const nameField = z.string().trim().min(1, "Name is required.").max(160);
 
 export const manageMasterRecordSchema = z
   .object({
-    requestId: z.uuid(),
     entity: z.enum(masterEntities),
     id: z.union([z.string().uuid(), z.literal("")]).optional(),
     code: z.string().optional(),
     name: z.string().optional(),
-    description: z.string().trim().max(1200).optional(),
+    description: z.string().optional(),
     sortOrder: z.number().int().min(0).max(9999).optional(),
     startsOn: z.string().optional(),
     endsOn: z.string().optional(),
@@ -47,25 +46,13 @@ export const manageMasterRecordSchema = z
   .superRefine((value, ctx) => {
     if (value.entity === "academic_year") {
       if (!value.name || value.name.trim().length < 2) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["name"],
-          message: "Year name is required.",
-        });
+        ctx.addIssue({ code: "custom", path: ["name"], message: "Year name is required." });
       }
       if (!value.startsOn) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["startsOn"],
-          message: "Start date is required.",
-        });
+        ctx.addIssue({ code: "custom", path: ["startsOn"], message: "Start date is required." });
       }
       if (!value.endsOn) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["endsOn"],
-          message: "End date is required.",
-        });
+        ctx.addIssue({ code: "custom", path: ["endsOn"], message: "End date is required." });
       }
       if (value.startsOn && value.endsOn && value.endsOn < value.startsOn) {
         ctx.addIssue({
@@ -79,11 +66,7 @@ export const manageMasterRecordSchema = z
 
     if (value.entity === "school") {
       if (!value.name || value.name.trim().length < 2) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["name"],
-          message: "School name is required.",
-        });
+        ctx.addIssue({ code: "custom", path: ["name"], message: "School name is required." });
       }
       return;
     }

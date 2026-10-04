@@ -1,28 +1,12 @@
 import type { Metadata } from "next";
-import { getSiteSettings } from "@/modules/crm/site/server";
-import { PublicSite } from "@/modules/crm/site/server";
 import { HomePageContent } from "@/modules/home/page-content";
-import { resolvePublicSlug } from "@/modules/crm/public";
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ organization?: string }>;
-}) {
-  const params = await searchParams;
-  const slug = await resolvePublicSlug(params.organization);
-  return (
-    <PublicSite slug={slug}>
-      <HomePageContent slug={slug} />
-    </PublicSite>
-  );
-}
 
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams: Promise<{ organization?: string }>;
-}): Promise<Metadata> {
-  const { organization } = await searchParams;
-  const site = await getSiteSettings(await resolvePublicSlug(organization));
-  return { title: { absolute: site.nameEn } };
+export const metadata: Metadata = {
+  title: "Sohoj Academy | Focused Learning. Visible Progress.",
+  description:
+    "Sohoj Academy combines small-batch teaching, continuous assessment and clear guardian progress tracking for focused academic support.",
+};
+
+export default async function HomePage() {
+  return <HomePageContent />;
 }

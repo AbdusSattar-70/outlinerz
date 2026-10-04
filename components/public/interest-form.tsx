@@ -16,11 +16,9 @@ import {
   SmartSelect,
   type SmartSelectOption,
 } from "@/components/shared/smart-select";
-
+import Logo from "@/components/shared/logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCrmText } from "@/modules/crm/translations";
-import { useSite } from "@/modules/crm/site/provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
@@ -71,10 +69,9 @@ function Field({
   return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
 }
 
+
+
 export function PublicInterestForm({
-  organizationSlug,
-  organizationName,
-  requestId,
   classes,
   programs,
   subjects,
@@ -85,9 +82,6 @@ export function PublicInterestForm({
   defaultOfferingId = "",
   intent = "interest",
 }: {
-  organizationSlug: string;
-  organizationName: string;
-  requestId: string;
   classes: Option[];
   programs: Option[];
   subjects: Option[];
@@ -99,9 +93,7 @@ export function PublicInterestForm({
   intent?: "interest" | "admission";
 }) {
   const { locale } = useLanguage();
-  const tr = useCrmText();
   const bn = locale === "bn";
-  const site = useSite();
   const [selectedOfferingId, setSelectedOfferingId] =
     useState(defaultOfferingId);
   const selectedOffering = useMemo(
@@ -110,7 +102,7 @@ export function PublicInterestForm({
   );
   const visibleSubjects = subjects; // Preferences are reverified by staff; do not filter out other subjects.
 
-  const [sameAddress, setSameAddress] = useState(false);
+  const [sameAddress,setSameAddress]=useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
   const [formVersion, setFormVersion] = useState(0);
@@ -120,16 +112,13 @@ export function PublicInterestForm({
     prospectNo?: string | null;
     studentName?: string;
     intentLabel?: string;
-    details?: Record<string, string>;
+    details?:Record<string,string>;
   } | null>(null);
 
   function submit(formData: FormData) {
     setMessage(null);
     const input = {
-      studentMobile: String(formData.get("studentMobile") ?? ""),
-      studentEmail: String(formData.get("studentEmail") ?? ""),
-      presentLandmark: String(formData.get("presentLandmark") ?? ""),
-      permanentSameAsPresent: sameAddress,
+      studentMobile:String(formData.get("studentMobile")??""),studentEmail:String(formData.get("studentEmail")??""),presentLandmark:String(formData.get("presentLandmark")??""),permanentSameAsPresent:sameAddress,
       dateOfBirth: String(formData.get("dateOfBirth") ?? ""),
       gender: String(formData.get("gender") ?? ""),
       schoolRoll: String(formData.get("schoolRoll") ?? ""),
@@ -176,38 +165,13 @@ export function PublicInterestForm({
     };
 
     startTransition(async () => {
-      const result = await submitPublicInterest(
-        input,
-        organizationSlug,
-        requestId,
-      ).catch(() => ({
-        ok: false as const,
-        error: "Could not submit. Try again later.",
-      }));
+      const result = await submitPublicInterest(input);
       if (result.ok) {
         setMessage({
           ok: true,
           prospectNo: result.prospectNo,
           studentName: input.studentName,
-          details: {
-            guardian: input.guardianName,
-            mobile: input.mobile,
-            email: input.studentEmail,
-            address: input.guardianAddress,
-            programme:
-              selectedOffering?.name ??
-              programs
-                .filter((p) => input.programIds.includes(p.id))
-                .map((p) => p.name)
-                .join(", "),
-            subjects: subjects
-              .filter((s) => input.subjectIds.includes(s.id))
-              .map((s) => s.name)
-              .join(", "),
-            submitted: new Date().toLocaleString("en-GB", {
-              timeZone: "Asia/Dhaka",
-            }),
-          },
+          details:{guardian:input.guardianName,mobile:input.mobile,email:input.studentEmail,address:input.guardianAddress,programme:selectedOffering?.name??programs.filter(p=>input.programIds.includes(p.id)).map(p=>p.name).join(", "),subjects:subjects.filter(s=>input.subjectIds.includes(s.id)).map(s=>s.name).join(", "),submitted:new Date().toLocaleString("en-GB",{timeZone:"Asia/Dhaka"})},
           intentLabel:
             input.intent === "admission"
               ? bn
@@ -225,9 +189,7 @@ export function PublicInterestForm({
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         toast.error(
-          (bn
-            ? "নিবন্ধন জমা দেওয়া যায়নি। তথ্য যাচাই করে কিছুক্ষণ পরে আবার চেষ্টা করুন।"
-            : result.error) ||
+          result.error ||
             (bn
               ? "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।"
               : "Something went wrong. Please try again."),
@@ -237,9 +199,7 @@ export function PublicInterestForm({
     });
   }
 
-  function downloadPdf() {
-    window.print();
-  }
+  function downloadPdf(){window.print();}
 
   // ── Success only: no form ──────────────────────────────────────────
   if (message?.ok) {
@@ -261,11 +221,7 @@ export function PublicInterestForm({
           </div>
         </div>
 
-        <AcknowledgementSlip
-          organizationName={site ? (bn ? site.nameBn : site.nameEn) : organizationName}
-          message={message}
-          bn={bn}
-        />
+        <AcknowledgementSlip message={message} bn={bn} />
 
         <div className="flex flex-wrap gap-3">
           <button
@@ -277,7 +233,7 @@ export function PublicInterestForm({
             {bn ? "প্রিন্ট / PDF সংরক্ষণ" : "Print / Save PDF"}
           </button>
           <Link
-            href={`/?organization=${encodeURIComponent(organizationSlug)}`}
+            href="/"
             className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold hover:bg-muted"
           >
             {bn ? "হোমে ফিরুন" : "Back to home"}
@@ -290,14 +246,7 @@ export function PublicInterestForm({
   // ── Form (only when not successful) ────────────────────────────────
   return (
     <div className="space-y-6" key={formVersion}>
-      <form
-        ref={formRef}
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit(new FormData(event.currentTarget));
-        }}
-        className="space-y-8"
-      >
+      <form ref={formRef} onSubmit={event=>{event.preventDefault();submit(new FormData(event.currentTarget));}} className="space-y-8">
         <div className="sr-only" aria-hidden="true">
           <label htmlFor="website">Website</label>
           <input id="website" name="website" tabIndex={-1} autoComplete="off" />
@@ -372,16 +321,20 @@ export function PublicInterestForm({
                   <p className="font-semibold">
                     {bn ? "প্রকাশিত ফি" : "Published fees"} (
                     {selectedOffering.feePlan.currency_code},{" "}
-                    {tr(selectedOffering.feePlan.billing_cycle)})
+                    {selectedOffering.feePlan.billing_cycle
+                      .toLowerCase()
+                      .replaceAll("_", " ")}
+                    )
                   </p>
                   <ul className="list-inside list-disc">
                     {selectedOffering.feePlan.components.map((component) => (
                       <li key={component.name}>
-                        {tr(component.name)}:{" "}
-                        {Number(component.amount).toLocaleString(
-                          bn ? "bn-BD" : "en-BD",
-                        )}{" "}
-                        ({tr(component.recurrence)})
+                        {component.name}:{" "}
+                        {Number(component.amount).toLocaleString("en-BD")} (
+                        {component.recurrence
+                          .toLowerCase()
+                          .replaceAll("_", " ")}
+                        )
                       </li>
                     ))}
                   </ul>
@@ -417,31 +370,8 @@ export function PublicInterestForm({
                 className="h-11"
               />
             </Field>
-            <Field>
-              <Label htmlFor="student-mobile">
-                {bn
-                  ? "শিক্ষার্থীর মোবাইল (ঐচ্ছিক)"
-                  : "Student mobile (optional)"}
-              </Label>
-              <Input
-                id="student-mobile"
-                name="studentMobile"
-                type="tel"
-                pattern="01[3-9][0-9]{8}"
-                className="h-11"
-              />
-            </Field>
-            <Field>
-              <Label htmlFor="student-email">
-                {bn ? "শিক্ষার্থীর ইমেইল (ঐচ্ছিক)" : "Student email (optional)"}
-              </Label>
-              <Input
-                id="student-email"
-                name="studentEmail"
-                type="email"
-                className="h-11"
-              />
-            </Field>
+            <Field><Label htmlFor="student-mobile">{bn?"শিক্ষার্থীর মোবাইল (ঐচ্ছিক)":"Student mobile (optional)"}</Label><Input id="student-mobile" name="studentMobile" type="tel" pattern="01[3-9][0-9]{8}" className="h-11"/></Field>
+            <Field><Label htmlFor="student-email">{bn?"শিক্ষার্থীর ইমেইল (ঐচ্ছিক)":"Student email (optional)"}</Label><Input id="student-email" name="studentEmail" type="email" className="h-11"/></Field>
             <Field>
               <Label htmlFor="interest-class">
                 {bn ? "বর্তমান ক্লাস" : "Current Class"} *
@@ -696,7 +626,7 @@ export function PublicInterestForm({
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm">
-                {bn ? "জন্ম তারিখ" : "Date of birth"}
+                Date of birth / জন্ম তারিখ
                 <input
                   name="dateOfBirth"
                   type="date"
@@ -704,35 +634,11 @@ export function PublicInterestForm({
                   className="mt-2 min-h-11 w-full rounded-xl border bg-background px-3"
                 />
               </label>
+              <label className="block text-sm">Gender / লিঙ্গ<select name="gender" className={`${selectClass} mt-2`}><option value="">Not provided / উল্লেখ নেই</option><option>Female</option><option>Male</option><option>Other</option></select></label>
+              <label className="block text-sm">Birth registration (optional) / জন্ম নিবন্ধন<input name="birthRegistration" maxLength={80} className="mt-2 min-h-11 w-full rounded-xl border bg-background px-3"/></label>
+              <label className="block text-sm">Previous exam / result (optional) / আগের ফলাফল<input name="previousResult" maxLength={160} className="mt-2 min-h-11 w-full rounded-xl border bg-background px-3"/></label>
               <label className="block text-sm">
-                {bn ? "লিঙ্গ" : "Gender"}
-                <select name="gender" className={`${selectClass} mt-2`}>
-                  <option value="">{bn ? "উল্লেখ নেই" : "Not provided"}</option>
-                  <option value="Female">{bn ? "নারী" : "Female"}</option>
-                  <option value="Male">{bn ? "পুরুষ" : "Male"}</option>
-                  <option value="Other">{bn ? "অন্যান্য" : "Other"}</option>
-                </select>
-              </label>
-              <label className="block text-sm">
-                {bn ? "জন্ম নিবন্ধন (ঐচ্ছিক)" : "Birth registration (optional)"}
-                <input
-                  name="birthRegistration"
-                  maxLength={80}
-                  className="mt-2 min-h-11 w-full rounded-xl border bg-background px-3"
-                />
-              </label>
-              <label className="block text-sm">
-                {bn
-                  ? "আগের পরীক্ষা / ফলাফল (ঐচ্ছিক)"
-                  : "Previous exam / result (optional)"}
-                <input
-                  name="previousResult"
-                  maxLength={160}
-                  className="mt-2 min-h-11 w-full rounded-xl border bg-background px-3"
-                />
-              </label>
-              <label className="block text-sm">
-                {bn ? "পিতার নাম" : "Father\u2019s name"}
+                Father’s name / পিতার নাম
                 <input
                   name="fatherName"
                   type="text"
@@ -741,7 +647,7 @@ export function PublicInterestForm({
                 />
               </label>
               <label className="block text-sm">
-                {bn ? "মাতার নাম" : "Mother\u2019s name"}
+                Mother’s name / মাতার নাম
                 <input
                   name="motherName"
                   type="text"
@@ -750,7 +656,7 @@ export function PublicInterestForm({
                 />
               </label>
               <label className="block text-sm">
-                {bn ? "বিদ্যালয়ের রোল" : "School roll"}
+                School roll / স্কুল রোল
                 <input
                   name="schoolRoll"
                   type="text"
@@ -759,7 +665,7 @@ export function PublicInterestForm({
                 />
               </label>
               <label className="block text-sm">
-                {bn ? "জরুরি যোগাযোগ" : "Emergency contact"}
+                Emergency contact / জরুরি যোগাযোগ
                 <input
                   name="emergencyContact"
                   type="text"
@@ -768,7 +674,7 @@ export function PublicInterestForm({
                 />
               </label>
               <label className="block text-sm">
-                {bn ? "জরুরি মোবাইল" : "Emergency mobile"}
+                Emergency mobile / জরুরি মোবাইল
                 <input
                   name="emergencyMobile"
                   type="tel"
@@ -777,9 +683,7 @@ export function PublicInterestForm({
                 />
               </label>
               <label className="block text-sm">
-                {bn
-                  ? "স্বাস্থ্য বা শিক্ষার বিশেষ সহায়তা (ঐচ্ছিক)"
-                  : "Health or learning support needs (optional)"}
+                Health or learning support needs (optional) / বিশেষ সহায়তা
                 <input
                   name="learningNeeds"
                   type="text"
@@ -797,10 +701,7 @@ export function PublicInterestForm({
             </h2>
             <Field>
               <Label htmlFor="guardian-address">
-                {bn
-                  ? "বর্তমান ঠিকানা: গ্রাম/রাস্তা, ডাকঘর, উপজেলা ও জেলা"
-                  : "Present address: village/road, post, upazila and district"}{" "}
-                *
+                {bn ? "বর্তমান ঠিকানা: গ্রাম/রাস্তা, ডাকঘর, উপজেলা ও জেলা" : "Present address: village/road, post, upazila and district"} *
               </Label>
               <textarea
                 id="guardian-address"
@@ -812,44 +713,9 @@ export function PublicInterestForm({
                 className={`${selectClass} min-h-20 py-2`}
               />
             </Field>
-            <Field>
-              <Label htmlFor="present-landmark">
-                {bn
-                  ? "কাছের পরিচিত স্থান / বিশেষ লোকেশন"
-                  : "Nearby landmark / special location"}
-              </Label>
-              <Input
-                id="present-landmark"
-                name="presentLandmark"
-                maxLength={160}
-                className="h-11"
-              />
-            </Field>
-            <label className="flex gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={sameAddress}
-                onChange={(e) => setSameAddress(e.target.checked)}
-              />
-              {bn
-                ? "স্থায়ী ঠিকানা বর্তমান ঠিকানার মতো"
-                : "Permanent address is the same as present address"}
-            </label>
-            <Field className={sameAddress ? "hidden" : ""}>
-              <Label htmlFor="permanent-address">
-                {bn
-                  ? "স্থায়ী ঠিকানা (আলাদা হলে)"
-                  : "Permanent address (if different)"}
-              </Label>
-              <textarea
-                id="permanent-address"
-                name="permanentAddress"
-                disabled={sameAddress}
-                maxLength={300}
-                rows={3}
-                className={`${selectClass} min-h-24 py-2`}
-              />
-            </Field>
+            <Field><Label htmlFor="present-landmark">{bn?"কাছের পরিচিত স্থান / বিশেষ লোকেশন":"Nearby landmark / special location"}</Label><Input id="present-landmark" name="presentLandmark" maxLength={160} className="h-11"/></Field>
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={sameAddress} onChange={e=>setSameAddress(e.target.checked)}/>{bn?"স্থায়ী ঠিকানা বর্তমান ঠিকানার মতো":"Permanent address is the same as present address"}</label>
+            <Field className={sameAddress?"hidden":""}><Label htmlFor="permanent-address">{bn?"স্থায়ী ঠিকানা (আলাদা হলে)":"Permanent address (if different)"}</Label><textarea id="permanent-address" name="permanentAddress" disabled={sameAddress} maxLength={300} rows={3} className={`${selectClass} min-h-24 py-2`}/></Field>
             <Field>
               <Label htmlFor="academic-background">
                 {bn ? "পূর্ববর্তী শিক্ষাগত তথ্য" : "Academic background"}
@@ -880,6 +746,7 @@ export function PublicInterestForm({
               <input
                 type="checkbox"
                 name="requirementsAcknowledged"
+                required
                 className="mt-1 size-4 accent-blue-700"
               />
               <span>
@@ -905,6 +772,7 @@ export function PublicInterestForm({
               <input
                 type="checkbox"
                 name="policyAcknowledged"
+                required
                 className="mt-1 size-4 accent-blue-700"
               />
               <span>
@@ -920,12 +788,13 @@ export function PublicInterestForm({
           <input
             type="checkbox"
             name="consentToContact"
+            required
             className="mt-1 size-4 accent-blue-700"
           />
           <span>
             {bn
-              ? "এই আগ্রহ নিবন্ধন সম্পর্কে Outlinerzকে আমার সঙ্গে যোগাযোগের অনুমতি দিচ্ছি।"
-              : "I allow Outlinerz to contact me about this interest request and related programmes."}
+              ? "এই আগ্রহ নিবন্ধন সম্পর্কে সহজ একাডেমিকে আমার সঙ্গে যোগাযোগের অনুমতি দিচ্ছি।"
+              : "I allow Sohoj Academy to contact me about this interest request and related programmes."}
           </span>
         </label>
 
