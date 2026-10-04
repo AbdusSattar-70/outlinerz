@@ -20,7 +20,7 @@ export async function PublicSite({
   children: React.ReactNode;
 }) {
   return (
-    <SiteProvider settings={await getSiteSettings(slug)}>
+    <SiteProvider slug={slug} settings={await getSiteSettings(slug)}>
       {children}
     </SiteProvider>
   );

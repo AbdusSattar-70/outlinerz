@@ -278,9 +278,10 @@ const api = http.createServer(async (req, res) => {
         "--enable-unsafe-swiftshader",
       ],
     });
-    const page = await browser.newPage({
+    const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
     });
+    const page = await context.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
     const base = "http://127.0.0.1:3100";
     await page.goto(base + "/auth/sign-in");
@@ -310,7 +311,11 @@ const api = http.createServer(async (req, res) => {
         .getAttribute("src"),
       "/branding/sohoj-academy-logo.webp",
     );
-    await page.waitForFunction(()=>Array.from(document.querySelectorAll("img")).filter(i=>i.src.includes("branding")).every(i=>i.complete&&i.naturalWidth>0));
+    await page.waitForFunction(() =>
+      Array.from(document.querySelectorAll("img"))
+        .filter((i) => i.src.includes("branding"))
+        .every((i) => i.complete && i.naturalWidth > 0),
+    );
     console.log("PASS: original public cards preserve tenant links");
     await page.goto(base + "/interest?organization=test-institute");
     await page.locator("[name=studentName]:visible").fill("Applicant");
@@ -420,6 +425,10 @@ const api = http.createServer(async (req, res) => {
       .filter({ visible: true })
       .waitFor();
     console.log("PASS: prospect search, profile and atomic follow-up contract");
+    const publicTab = await page.context().newPage();
+    publicTab.on("pageerror", (e) => errors.push(e.message));
+    await publicTab.goto(base + "/");
+    assert.equal(await publicTab.title(), "Test Institute");
     await page.goto(base + "/dashboard/crm/website");
     await page
       .locator("#erp-main")
@@ -452,11 +461,41 @@ const api = http.createServer(async (req, res) => {
       .getByText("Changes saved.", { exact: true })
       .filter({ visible: true })
       .waitFor();
+    await publicTab
+      .getByText("Personal teaching for every student", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    assert.equal(await publicTab.title(), "New Learning Academy");
+    await page
+      .context()
+      .addCookies([
+        { name: "outlinerz-organization", value: id("9"), url: base },
+      ]);
+    await publicTab.goto(base + "/");
+    assert.equal(await publicTab.title(), "Sohoj Academy");
+    await publicTab.goto(base + "/?organization=test-institute");
+    await publicTab
+      .getByText("Personal teaching for every student", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    await page
+      .context()
+      .addCookies([{ name: "outlinerz-organization", value: org, url: base }]);
+    await publicTab.close();
+    console.log(
+      "PASS: public tenant selection rejects forged organization cookies and honors explicit public links",
+    );
+    console.log(
+      "PASS: bare CRM URL resolves verified organization and open CRM tab refreshes after management save",
+    );
     assert.equal(
       calls.find((c) => c.name === "crm_site_save").input.p_org,
       org,
     );
-    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:process.env.UI_SCREENSHOT_DIR+"/crm-management.png"});
+    if (process.env.UI_SCREENSHOT_DIR)
+      await page.screenshot({
+        path: process.env.UI_SCREENSHOT_DIR + "/crm-management.png",
+      });
     await page.goto(base + "/?organization=test-institute");
     await page
       .getByText("Personal teaching for every student", { exact: true })
@@ -477,7 +516,11 @@ const api = http.createServer(async (req, res) => {
       .first()
       .waitFor();
     await page.getByRole("button", { name: "EN", exact: true }).click();
-    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:process.env.UI_SCREENSHOT_DIR+"/crm-public.png",fullPage:true});
+    if (process.env.UI_SCREENSHOT_DIR)
+      await page.screenshot({
+        path: process.env.UI_SCREENSHOT_DIR + "/crm-public.png",
+        fullPage: true,
+      });
     console.log(
       "PASS: tenant CRM management changes names, contact and bilingual content without replacing source logo presentation",
     );

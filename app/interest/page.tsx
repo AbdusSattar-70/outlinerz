@@ -7,7 +7,7 @@ import Navbar from "@/components/home-navbar/navbar";
 import { PublicInterestForm } from "@/components/public/interest-form";
 import Logo from "@/components/shared/logo";
 import { LocalizedText } from "@/components/shared/localized-text";
-import { publicSlug, getPublicOptions } from "@/modules/crm/public";
+import { resolvePublicSlug, getPublicOptions } from "@/modules/crm/public";
 import { randomUUID } from "node:crypto";
 import { getPublicProgrammeOfferings } from "@/modules/offerings/queries";
 
@@ -28,7 +28,7 @@ export default async function InterestPage({
   const intent = params.intent === "admission" ? "admission" : "interest";
   const requestedOfferingId = params.offering?.trim() || "";
 
-  const slug = publicSlug(params.organization);
+  const slug = await resolvePublicSlug(params.organization);
   const [options, publicOfferings] = await Promise.all([
     getPublicOptions(slug),
     getPublicProgrammeOfferings(slug),
@@ -186,7 +186,9 @@ export default async function InterestPage({
               <div className="rounded-[2rem] border border-border bg-card p-5 text-card-foreground shadow-[0_24px_70px_-50px_rgba(15,23,42,.35)] sm:p-7 lg:p-9">
                 <PublicInterestForm
                   organizationSlug={slug}
-                  organizationName={options?.organization?.name ?? "Sohoj Academy"}
+                  organizationName={
+                    options?.organization?.name ?? "Sohoj Academy"
+                  }
                   requestId={randomUUID()}
                   classes={classesQ.data ?? []}
                   programs={programsQ.data ?? []}
@@ -246,6 +248,6 @@ export async function generateMetadata({
   searchParams: Promise<{ organization?: string }>;
 }): Promise<Metadata> {
   const { organization } = await searchParams;
-  const site = await getSiteSettings(publicSlug(organization));
+  const site = await getSiteSettings(await resolvePublicSlug(organization));
   return { title: { absolute: "Register interest | " + site.nameEn } };
 }

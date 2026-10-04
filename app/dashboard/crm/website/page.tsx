@@ -36,6 +36,7 @@ export default async function WebsiteManagement() {
         }}
       />
       <OfferingEditor
+        slug={organization.slug}
         offerings={(offerings.data || []).map((o) => ({
           ...o,
           public_copy: Object.fromEntries(

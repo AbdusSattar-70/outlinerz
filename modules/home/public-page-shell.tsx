@@ -1,5 +1,5 @@
 import { SiteContact } from "@/modules/crm/site/provider";
-import { publicSlug } from "@/modules/crm/public";
+import { resolvePublicSlug } from "@/modules/crm/public";
 import { PublicSite } from "@/modules/crm/site/server";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -20,8 +20,9 @@ export async function PublicPageShell({
   description: [string, string];
   children: ReactNode;
 }) {
+  organizationSlug = await resolvePublicSlug(organizationSlug);
   return (
-    <PublicSite slug={publicSlug(organizationSlug)}>
+    <PublicSite slug={organizationSlug}>
       <div className="min-h-screen bg-background text-foreground">
         <Navbar organizationSlug={organizationSlug} />
         <main id="main-content">

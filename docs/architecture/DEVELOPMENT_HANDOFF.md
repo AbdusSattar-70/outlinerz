@@ -1,4 +1,6 @@
-Current CRM organization management: `/dashboard/crm/website` preserves the original Sohoj presentation and configures bilingual identity/content, image assets, contacts and offering publication. Apply `04_crm_site_management.sql` after the existing migrations. Database validation: 95 checks. UI validation: 10 mocked browser checks; build/typecheck pass and lint has 16 existing warnings.
+CRM content refresh fix: bare public URLs resolve the verified selected organization when no public slug/default is given. Successful management saves refresh same-organization public tabs; public pages also reload on focus. Anonymous deployments still require an explicit public URL or configured default slug. No new migration.
+
+Current CRM organization management: `/dashboard/crm/website` preserves the original Sohoj presentation and configures bilingual identity/content, image assets, contacts and offering publication. Apply `04_crm_site_management.sql` after the existing migrations. Database validation: 95 checks. UI validation: 12 mocked browser checks; build/typecheck pass and lint has 16 existing warnings.
 
 # Outlinerz current handoff
 

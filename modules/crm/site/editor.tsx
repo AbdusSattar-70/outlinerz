@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
 import { siteCopy } from "./catalogue";
 import { type SiteRecord } from "./model";
+import { notifyPublicSite } from "./provider";
 import { saveSite } from "./actions";
 export function SiteEditor({
   initial,
@@ -84,6 +85,7 @@ export function SiteEditor({
               setRecord({ ...record, revision: result.revision! });
               setRequestId(crypto.randomUUID());
               setMessage(bn ? "পরিবর্তন সংরক্ষিত হয়েছে।" : "Changes saved.");
+              notifyPublicSite(slug);
             }
           } catch {
             setMessage(

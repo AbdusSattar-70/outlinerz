@@ -1,5 +1,5 @@
 import { getSiteSettings } from "@/modules/crm/site/server";
-import { publicSlug } from "@/modules/crm/public";
+import { resolvePublicSlug } from "@/modules/crm/public";
 import type { Metadata } from "next";
 import { SiteImage } from "@/modules/crm/site/provider";
 import Link from "next/link";
@@ -51,9 +51,10 @@ export default async function AboutPage({
   searchParams: Promise<{ organization?: string }>;
 }) {
   const { organization } = await searchParams;
+  const slug = await resolvePublicSlug(organization);
   return (
     <PublicPageShell
-      organizationSlug={publicSlug(organization)}
+      organizationSlug={slug}
       eyebrow={["About Sohoj Academy", "সহজ একাডেমি সম্পর্কে"]}
       title={[
         "A focused place to learn with confidence.",
@@ -146,7 +147,7 @@ export default async function AboutPage({
             ))}
           </div>
           <Link
-            href={`/?organization=${encodeURIComponent(publicSlug(organization))}#programs`}
+            href={`/?organization=${encodeURIComponent(slug)}#programs`}
             className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-500 px-5 text-sm font-semibold text-white transition hover:bg-blue-400"
           >
             <LocalizedText
@@ -167,6 +168,6 @@ export async function generateMetadata({
   searchParams: Promise<{ organization?: string }>;
 }): Promise<Metadata> {
   const { organization } = await searchParams;
-  const site = await getSiteSettings(publicSlug(organization));
+  const site = await getSiteSettings(await resolvePublicSlug(organization));
   return { title: { absolute: "About | " + site.nameEn } };
 }

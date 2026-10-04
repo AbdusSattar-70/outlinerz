@@ -15,7 +15,7 @@ pnpm dev
 
 Keep the installed `01_outlinerz_eduops_baseline.sql` unchanged. The forward migrations are `02_organization_onboarding.sql`, `03_crm_interface.sql` and `04_crm_site_management.sql`. These commands apply pending changes; never run a remote reset.
 
-Public links select an organization explicitly: `/?organization=your-slug` and `/interest?organization=your-slug`. For one organization's default public website, set `NEXT_PUBLIC_ORGANIZATION_SLUG=your-slug` in `.env.local`. Use the existing project's Supabase URL and publishable key. A missing slug shows an empty catalogue and unavailable registration, rather than choosing an arbitrary tenant.
+Public links select an organization explicitly: `/?organization=your-slug` and `/interest?organization=your-slug`. For one organization's default public website, set `NEXT_PUBLIC_ORGANIZATION_SLUG=your-slug` in `.env.local`. Use the existing project's Supabase URL and publishable key. When neither an explicit public slug nor a configured default is present, signed-in visits resolve the selected organization only after verifying the user and active membership. Anonymous visits without either retain the template and empty catalogue; never choose an arbitrary tenant.
 
 ## Implemented behavior
 
@@ -64,3 +64,11 @@ Identity fields cover English/Bangla names, full logo and logo mark URLs, classr
 `crm_sites` stores one configuration per organization. Only owners/admins can read its management table. Saves check the selected organization on the server and database, require CRM enabled, compare the revision, preserve stable request retries, update the canonical organization name atomically and record audit history. Public visitors use a bounded projection by organization slug; private membership and organization identifiers are excluded. Public page titles use the configured organization name. Contacts appear in the existing footer; no settings controls appear on the public pages.
 
 Existing offering publication edits use an expected-value comparison, scoped row lock and stable command request. They change the display name, bilingual card copy, schedule/requirements/admission policy, website visibility and intake status. Fees, enrollments, capacity and academic references stay with their operational workflows. Directory controls remain at `/dashboard/crm/manage`.
+
+## Management edits and CRM refresh
+
+The bare CRM URL `/` previously ignored the ERP selection cookie and showed the template when `NEXT_PUBLIC_ORGANIZATION_SLUG` was unset. Public pages now resolve the explicit query slug, then configured public default, then the signed-in user's verified active organization selection. The cookie alone is never sufficient authorization. This resolution also applies to About, FAQ, Journal, interest registration, programme data and page titles.
+
+Successful management saves notify open public tabs for the same organization through a same-origin browser channel. Public tabs refresh their server content on that notification and when focused. This updates already-open pages without changing their presentation. Other browsers receive current content on reload or when returning to the page. Public visitors who are not signed in must use the organization-specific Preview website URL or the deployment's configured default slug.
+
+The browser suite now covers the actual failure path: keep `/` open in one tab, save identity/content in the management tab, and verify that the already-open page updates. It also rejects forged organization selection cookies and verifies that explicit public links still take precedence. Twelve browser checks pass; no additional database migration is required for this fix.

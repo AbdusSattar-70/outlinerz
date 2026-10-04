@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
+import { notifyPublicSite } from "./provider";
 import { saveOffering } from "./actions";
 export type OfferingPublication = {
   name: string;
@@ -18,9 +19,11 @@ const fields = [
 ] as const;
 export function OfferingEditor({
   offerings,
+  slug,
   enabled,
 }: {
   offerings: (OfferingPublication & { id: string })[];
+  slug: string;
   enabled: boolean;
 }) {
   const { locale } = useLanguage();
@@ -30,7 +33,7 @@ export function OfferingEditor({
         {locale === "bn" ? "প্রোগ্রাম প্রকাশনা" : "Programme publications"}
       </h2>
       {offerings.map((o) => (
-        <OfferingForm key={o.id} offering={o} enabled={enabled} />
+        <OfferingForm key={o.id} offering={o} slug={slug} enabled={enabled} />
       ))}
       {!offerings.length && (
         <p className="text-muted-foreground">
@@ -44,9 +47,11 @@ export function OfferingEditor({
 }
 function OfferingForm({
   offering,
+  slug,
   enabled,
 }: {
   offering: OfferingPublication & { id: string };
+  slug: string;
   enabled: boolean;
 }) {
   const { locale } = useLanguage(),
@@ -90,6 +95,7 @@ function OfferingForm({
               setExpected(value);
               setRequestId(crypto.randomUUID());
               setMessage(bn ? "সংরক্ষিত হয়েছে।" : "Saved.");
+              notifyPublicSite(slug);
             }
           } catch {
             setMessage(bn ? "সংরক্ষণ করা যায়নি।" : "Could not save.");

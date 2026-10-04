@@ -1,5 +1,5 @@
 import { getSiteSettings } from "@/modules/crm/site/server";
-import { publicSlug } from "@/modules/crm/public";
+import { resolvePublicSlug } from "@/modules/crm/public";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -51,9 +51,10 @@ export default async function FaqPage({
   searchParams: Promise<{ organization?: string }>;
 }) {
   const { organization } = await searchParams;
+  const slug = await resolvePublicSlug(organization);
   return (
     <PublicPageShell
-      organizationSlug={publicSlug(organization)}
+      organizationSlug={slug}
       eyebrow={["Help for families", "পরিবারের জন্য সহায়তা"]}
       title={["Questions, answered clearly.", "আপনার প্রশ্নের সহজ উত্তর।"]}
       description={[
@@ -94,7 +95,7 @@ export default async function FaqPage({
             />
           </p>
           <Link
-            href={`/?organization=${encodeURIComponent(publicSlug(organization))}#programs`}
+            href={`/?organization=${encodeURIComponent(slug)}#programs`}
             className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-semibold text-white hover:bg-blue-400"
           >
             <LocalizedText en="Browse programmes" bn="প্রোগ্রাম দেখুন" />
@@ -112,6 +113,6 @@ export async function generateMetadata({
   searchParams: Promise<{ organization?: string }>;
 }): Promise<Metadata> {
   const { organization } = await searchParams;
-  const site = await getSiteSettings(publicSlug(organization));
+  const site = await getSiteSettings(await resolvePublicSlug(organization));
   return { title: { absolute: "FAQ | " + site.nameEn } };
 }

@@ -138,10 +138,11 @@ export async function getPublicProgrammeOfferings(
   slug?: string,
 ): Promise<PublicOfferingCard[] | null> {
   try {
-    const { organizationClient } =
-      await import("@/modules/organizations/server");
-    const { publicSlug } = await import("@/modules/crm/public");
-    const resolved = publicSlug(slug);
+    const { organizationClient } = await import(
+      "@/modules/organizations/server"
+    );
+    const { resolvePublicSlug } = await import("@/modules/crm/public");
+    const resolved = await resolvePublicSlug(slug);
     if (!resolved) return [];
     const db = await organizationClient();
     const { data, error } = await db.rpc("crm_public_catalogue", {

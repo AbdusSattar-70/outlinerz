@@ -1,17 +1,38 @@
 "use client";
 import Image from "next/image";
-import { createContext, useContext } from "react";
+import { useRouter } from "next/navigation";
+import { createContext, useContext, useEffect } from "react";
 import { defaultSite, type SiteSettings } from "./model";
 import { useLanguage } from "@/components/providers/language-provider";
 import { siteCopy } from "./catalogue";
 const SiteContext = createContext<SiteSettings | null>(null);
 export function SiteProvider({
   settings,
+  slug,
   children,
 }: {
   settings: SiteSettings;
+  slug?: string;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!slug) return;
+    const refresh = () => router.refresh();
+    const channel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel("outlinerz-crm-content")
+        : null;
+    if (channel)
+      channel.onmessage = (event) => {
+        if (event.data?.slug === slug) refresh();
+      };
+    window.addEventListener("focus", refresh);
+    return () => {
+      channel?.close();
+      window.removeEventListener("focus", refresh);
+    };
+  }, [slug, router]);
   return (
     <SiteContext.Provider value={settings}>{children}</SiteContext.Provider>
   );
@@ -64,4 +85,23 @@ export function SiteContact() {
   ) : null;
 }
 
-export function SiteName({uppercase=false}:{uppercase?:boolean}){const site=useSite()||defaultSite;const {locale}=useLanguage();return <>{locale==="bn"?site.nameBn:uppercase?site.nameEn.toUpperCase():site.nameEn}</>;}
+export function SiteName({ uppercase = false }: { uppercase?: boolean }) {
+  const site = useSite() || defaultSite;
+  const { locale } = useLanguage();
+  return (
+    <>
+      {locale === "bn"
+        ? site.nameBn
+        : uppercase
+          ? site.nameEn.toUpperCase()
+          : site.nameEn}
+    </>
+  );
+}
+
+export function notifyPublicSite(slug: string) {
+  if (typeof BroadcastChannel === "undefined") return;
+  const channel = new BroadcastChannel("outlinerz-crm-content");
+  channel.postMessage({ slug });
+  channel.close();
+}
