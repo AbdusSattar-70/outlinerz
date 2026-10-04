@@ -13,7 +13,16 @@ export async function selectBranch(form:FormData){
  if(!branch) throw new Error("You do not have access to this branch.");await select(branch.id,branch.slug);redirect("/dashboard");
 }
 export async function openBranch(form:FormData){
- await getMyBranches();const input=z.object({requestId:z.string().uuid(),name:z.string().trim().min(2).max(120),slug:z.string().regex(/^[a-z0-9][a-z0-9-]{2,62}$/),organizationName:z.string().trim().max(120)}).parse(Object.fromEntries(form));
+ await getMyBranches();
+ const parsed=z.object({
+  requestId:z.string().uuid("Reload this page and try again."),
+  name:z.string().trim().min(2,"Enter a branch name with at least two characters.").max(120),
+  slug:z.string().trim().transform(value=>value.toLowerCase().replace(/[\s_]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,""))
+   .pipe(z.string().regex(/^[a-z0-9][a-z0-9-]{2,62}$/, "Enter a URL slug with 3–63 English letters, numbers or hyphens, for example dhaka-branch.")),
+  organizationName:z.string().trim().max(120)
+ }).safeParse(Object.fromEntries(form));
+ if(!parsed.success) redirect(`/branches?error=${encodeURIComponent(parsed.error.issues[0]?.message??"Check the branch details and try again.")}`);
+ const input=parsed.data;
  const db=await platformClient();const{data,error}=await db.rpc("open_academy_branch",{p_request_id:input.requestId,p_name:input.name,p_slug:input.slug,p_organization_name:input.organizationName||null,p_demo:form.get("demo")==="on"});
  if(error) redirect(`/branches?error=${encodeURIComponent(error.message)}`);
  const branch=z.object({id:z.string().uuid(),slug:z.string()}).parse(data);await select(branch.id,branch.slug);redirect("/dashboard");
