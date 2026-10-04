@@ -125,7 +125,16 @@ const tables = {
       active: true,
     },
   ],
-  offerings: [{ id: off, organization_id: org, name: "Math programme" }],
+  offerings: [
+    {
+      id: off,
+      organization_id: org,
+      name: "Math programme",
+      public_copy: {},
+      intake_open: true,
+      public_visible: true,
+    },
+  ],
   class_levels: [
     {
       id: cl,
@@ -154,6 +163,8 @@ const tables = {
   followups: [],
   branches: [],
 };
+tables.crm_sites = [];
+let siteSettings = null;
 const errors = [];
 const calls = [];
 const api = http.createServer(async (req, res) => {
@@ -166,7 +177,18 @@ const api = http.createServer(async (req, res) => {
   else if (url.pathname.startsWith("/rest/v1/rpc/")) {
     const name = url.pathname.split("/").pop();
     calls.push({ name, input });
-    if (name === "crm_public_catalogue") result = catalogue;
+    if (name === "crm_site_public")
+      result = { name: "Test Institute", settings: siteSettings };
+    else if (name === "crm_site_offering") {
+      Object.assign(tables.offerings[0], input.p_input);
+      result = { id: input.p_offering };
+    } else if (name === "crm_site_save") {
+      siteSettings = input.p_settings;
+      tables.crm_sites = [
+        { organization_id: org, revision: 1, settings: siteSettings },
+      ];
+      result = { revision: 1 };
+    } else if (name === "crm_public_catalogue") result = catalogue;
     else if (name === "crm_public_options")
       result = {
         organization: { name: "Test Institute", slug: "test-institute" },
@@ -280,6 +302,15 @@ const api = http.createServer(async (req, res) => {
       await interest.getAttribute("href"),
       /organization=test-institute/,
     );
+    assert.equal(
+      await page
+        .locator("img")
+        .filter({ visible: true })
+        .first()
+        .getAttribute("src"),
+      "/branding/sohoj-academy-logo.webp",
+    );
+    await page.waitForFunction(()=>Array.from(document.querySelectorAll("img")).filter(i=>i.src.includes("branding")).every(i=>i.complete&&i.naturalWidth>0));
     console.log("PASS: original public cards preserve tenant links");
     await page.goto(base + "/interest?organization=test-institute");
     await page.locator("[name=studentName]:visible").fill("Applicant");
@@ -305,9 +336,18 @@ const api = http.createServer(async (req, res) => {
         "/interest?organization=test-institute&intent=admission&offering=" +
         off,
     );
-    await page.getByText("প্রকাশিত ফি", { exact: false }).waitFor();
-    assert.match(await page.locator("main").innerText(), /মাসিক/);
-    assert.match(await page.locator("main").innerText(), /টিউশন ফি/);
+    await page
+      .getByText("প্রকাশিত ফি", { exact: false })
+      .filter({ visible: true })
+      .waitFor();
+    assert.match(
+      await page.locator("main").filter({ visible: true }).innerText(),
+      /মাসিক/,
+    );
+    assert.match(
+      await page.locator("main").filter({ visible: true }).innerText(),
+      /টিউশন ফি/,
+    );
     assert.equal(
       await page
         .locator("[name=policyAcknowledged]:visible")
@@ -350,12 +390,15 @@ const api = http.createServer(async (req, res) => {
     await page.getByRole("button", { name: "EN", exact: true }).click();
     await page
       .getByPlaceholder("Search name, mobile, school, offering or prospect ID")
+      .filter({ visible: true })
       .fill("no match");
     await page
       .getByText("No prospects match the current filters.", { exact: true })
+      .filter({ visible: true })
       .waitFor();
     await page
       .getByPlaceholder("Search name, mobile, school, offering or prospect ID")
+      .filter({ visible: true })
       .fill("Test Student");
     await page.getByRole("link", { name: "Test Student", exact: true }).click();
     await page
@@ -363,6 +406,7 @@ const api = http.createServer(async (req, res) => {
       .waitFor();
     await page
       .getByText("Record counselling / follow-up", { exact: true })
+      .filter({ visible: true })
       .click();
     await page
       .locator("#followup-notes")
@@ -371,8 +415,72 @@ const api = http.createServer(async (req, res) => {
     await page
       .getByRole("button", { name: "Record Follow-up", exact: true })
       .click();
-    await page.getByText("Follow-up recorded.", { exact: true }).waitFor();
+    await page
+      .getByText("Follow-up recorded.", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
     console.log("PASS: prospect search, profile and atomic follow-up contract");
+    await page.goto(base + "/dashboard/crm/website");
+    await page
+      .locator("#erp-main")
+      .getByRole("heading", { name: "CRM management dashboard", exact: true })
+      .waitFor();
+    await page
+      .getByLabel("Organization name — English", { exact: true })
+      .fill("New Learning Academy");
+    await page
+      .getByLabel("Organization name — Bangla", { exact: true })
+      .fill("নতুন শিক্ষা একাডেমি");
+    await page.getByLabel("Phone", { exact: true }).fill("01712345678");
+    await page
+      .getByLabel("Full logo URL", { exact: true })
+      .fill("/branding/sohoj-academy-mark.webp");
+    await page
+      .getByText("Homepage", { exact: true })
+      .filter({ visible: true })
+      .click();
+    const customHeadline = page
+      .locator("details")
+      .first()
+      .getByRole("textbox")
+      .first();
+    await customHeadline.fill("Personal teaching for every student");
+    await page
+      .getByRole("button", { name: "Save changes", exact: true })
+      .click();
+    await page
+      .getByText("Changes saved.", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    assert.equal(
+      calls.find((c) => c.name === "crm_site_save").input.p_org,
+      org,
+    );
+    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:process.env.UI_SCREENSHOT_DIR+"/crm-management.png"});
+    await page.goto(base + "/?organization=test-institute");
+    await page
+      .getByText("Personal teaching for every student", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    assert.equal(
+      await page.locator("img").first().getAttribute("src"),
+      "/branding/sohoj-academy-mark.webp",
+    );
+    await page
+      .getByText("01712345678", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    await page.getByRole("button", { name: "বাংলা", exact: true }).click();
+    await page
+      .getByText("কেন নতুন শিক্ষা একাডেমি", { exact: true })
+      .filter({ visible: true })
+      .first()
+      .waitFor();
+    await page.getByRole("button", { name: "EN", exact: true }).click();
+    if(process.env.UI_SCREENSHOT_DIR)await page.screenshot({path:process.env.UI_SCREENSHOT_DIR+"/crm-public.png",fullPage:true});
+    console.log(
+      "PASS: tenant CRM management changes names, contact and bilingual content without replacing source logo presentation",
+    );
     await page.goto(base + "/dashboard/crm/manage");
     await page
       .getByRole("button", { name: "Create record", exact: true })
@@ -384,7 +492,10 @@ const api = http.createServer(async (req, res) => {
       .getByRole("button", { name: "Create record", exact: true })
       .last()
       .click();
-    await page.getByText("Master record created.", { exact: true }).waitFor();
+    await page
+      .getByText("Master record created.", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
     console.log(
       "PASS: original master editor writes the new directory contract",
     );

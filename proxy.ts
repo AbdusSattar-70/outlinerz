@@ -8,6 +8,7 @@ export async function proxy(request: NextRequest) {
       "/dashboard",
       "/dashboard/setup",
       "/dashboard/crm/manage",
+      "/dashboard/crm/website",
       "/dashboard/crm/prospects",
     ].includes(request.nextUrl.pathname) &&
     !/^\/dashboard\/crm\/prospects\/[0-9a-f-]{36}$/.test(

@@ -1046,6 +1046,209 @@ await assert(
 await q("select public.set_module($1,'CRM',true)", [org]);
 await db.exec("reset role");
 
+// Editorial settings are private to management; only public fields are projected.
+const siteSettings = {
+  nameEn: "Changed Academy",
+  nameBn: "নতুন একাডেমি",
+  logo: "/branding/logo.webp",
+  mark: "/branding/mark.webp",
+  heroImage: "/images/classroom.webp",
+  learningImage: "/images/learning.webp",
+  phone: "01234567890",
+  email: "hello@example.test",
+  addressEn: "Dhaka",
+  addressBn: "ঢাকা",
+  copy: { text_0: { en: "Edited headline", bn: "পরিবর্তিত শিরোনাম" } },
+};
+await as(owner);
+const siteRequest = "abcdefab-1111-4111-8111-111111111111";
+const saved = (
+  await q("select public.crm_site_save($1,$2,0,$3) r", [
+    org,
+    siteRequest,
+    siteSettings,
+  ])
+)[0].r;
+await assert(
+  saved.revision === 1,
+  "CRM management saves first tenant configuration",
+);
+await assert(
+  (
+    await q("select public.crm_site_save($1,$2,0,$3) r", [
+      org,
+      siteRequest,
+      siteSettings,
+    ])
+  )[0].r.revision === 1,
+  "site save retry is idempotent",
+);
+await reject(
+  () =>
+    q("select public.crm_site_save($1,$2,0,$3)", [
+      org,
+      "abcdefab-2222-4222-8222-222222222222",
+      siteSettings,
+    ]),
+  "stale site edits cannot overwrite another save",
+);
+await reject(
+  () =>
+    q("select public.crm_site_save($1,$2,null,$3)", [
+      org,
+      "abcdefab-3333-4333-8333-333333333333",
+      siteSettings,
+    ]),
+  "missing revision cannot bypass conflict protection",
+);
+await reject(
+  () =>
+    q("select public.crm_site_save($1,$2,1,$3)", [
+      org,
+      "abcdefab-4444-4444-8444-444444444444",
+      { ...siteSettings, logo: "javascript:alert(1)" },
+    ]),
+  "site assets reject unsafe URL schemes",
+);
+await assert(
+  (await q("select name from public.organizations where id=$1", [org]))[0]
+    .name === siteSettings.nameEn,
+  "organization name and CRM identity update together",
+);
+await assert(
+  (
+    await q(
+      "select * from public.audit_events where organization_id=$1 and table_name='crm_sites'",
+      [org],
+    )
+  ).length === 1,
+  "site edits retain audit evidence without duplicate retry events",
+);
+await as(outsider);
+await assert(
+  (await q("select * from public.crm_sites where organization_id=$1", [org]))
+    .length === 0,
+  "management settings cannot be read across tenants",
+);
+await reject(
+  () =>
+    q("select public.crm_site_save($1,$2,1,$3)", [
+      org,
+      "abcdefab-5555-4555-8555-555555555555",
+      siteSettings,
+    ]),
+  "management settings cannot be changed across tenants",
+);
+await as(teacher);
+await reject(
+  () =>
+    q("select public.crm_site_save($1,$2,1,$3)", [
+      org,
+      "abcdefab-6666-4666-8666-666666666666",
+      siteSettings,
+    ]),
+  "teachers cannot change organization branding",
+);
+await as("", "anon");
+await reject(
+  () => q("select * from public.crm_sites"),
+  "anonymous visitors cannot read private management table",
+);
+await db.exec("reset role");
+const slug = (
+  await q("select slug from public.organizations where id=$1", [org])
+)[0].slug;
+await as("", "anon");
+const projection = (await q("select public.crm_site_public($1) r", [slug]))[0]
+  .r;
+await assert(
+  projection.settings.nameBn === siteSettings.nameBn &&
+    projection.settings.copy.text_0.en === "Edited headline" &&
+    !("organization_id" in projection),
+  "public site exposes configured branding and content without private identifiers",
+);
+await db.exec("reset role");
+
+await as(owner);
+const beforePublication = (
+  await q(
+    "select jsonb_build_object('name',name,'public_visible',public_visible,'intake_open',intake_open,'public_copy',public_copy) r from public.offerings where organization_id=$1 and id=$2",
+    [org, course.offering_id],
+  )
+)[0].r;
+const newPublication = {
+  ...beforePublication,
+  public_visible: true,
+  intake_open: false,
+  public_copy: {
+    showcase_title: "New programme title",
+    showcase_title_bn: "নতুন প্রোগ্রাম",
+  },
+};
+const publicationRequest = "abcdefab-7777-4777-8777-777777777777";
+const feeBefore = JSON.stringify(
+  await q(
+    "select amount,frequency from public.fee_terms where organization_id=$1 and offering_id=$2",
+    [org, course.offering_id],
+  ),
+);
+await q("select public.crm_site_offering($1,$2,$3,$4,$5)", [
+  org,
+  publicationRequest,
+  course.offering_id,
+  beforePublication,
+  newPublication,
+]);
+await q("select public.crm_site_offering($1,$2,$3,$4,$5)", [
+  org,
+  publicationRequest,
+  course.offering_id,
+  beforePublication,
+  newPublication,
+]);
+await assert(
+  (
+    await q(
+      "select public_copy,intake_open from public.offerings where organization_id=$1 and id=$2",
+      [org, course.offering_id],
+    )
+  )[0].public_copy.showcase_title === newPublication.public_copy.showcase_title,
+  "publication editor updates bilingual programme copy with stable retries",
+);
+await assert(
+  JSON.stringify(
+    await q(
+      "select amount,frequency from public.fee_terms where organization_id=$1 and offering_id=$2",
+      [org, course.offering_id],
+    ),
+  ) === feeBefore,
+  "publication settings preserve operational fees",
+);
+await reject(
+  () =>
+    q("select public.crm_site_offering($1,$2,$3,$4,$5)", [
+      org,
+      "abcdefab-8888-4888-8888-888888888888",
+      course.offering_id,
+      beforePublication,
+      newPublication,
+    ]),
+  "publication edits reject stale content",
+);
+await as(outsider);
+await reject(
+  () =>
+    q("select public.crm_site_offering($1,$2,$3,$4,$5)", [
+      org,
+      "abcdefab-9999-4999-8999-999999999999",
+      course.offering_id,
+      newPublication,
+      newPublication,
+    ]),
+  "another tenant cannot publish an offering",
+);
+await db.exec("reset role");
+
 const count = (
   await q(
     "select count(*)::int n from information_schema.tables where table_schema='public' and table_type='BASE TABLE'",

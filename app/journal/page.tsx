@@ -1,13 +1,9 @@
+import { getSiteSettings } from "@/modules/crm/site/server";
+import { publicSlug } from "@/modules/crm/public";
 import type { Metadata } from "next";
 import { BookOpenText, ClipboardCheck, Lightbulb } from "lucide-react";
 import { LocalizedText } from "@/components/shared/localized-text";
 import { PublicPageShell } from "@/modules/home/public-page-shell";
-
-export const metadata: Metadata = {
-  title: "Learning Journal",
-  description:
-    "Practical study guidance for students and guardians from Outlinerz.",
-};
 
 const articles = [
   {
@@ -74,8 +70,8 @@ export default async function JournalPage({
   const { organization } = await searchParams;
   return (
     <PublicPageShell
-      organizationSlug={organization}
-      eyebrow={["Sohoj Learning Journal", "Outlinerz শিক্ষা-জার্নাল"]}
+      organizationSlug={publicSlug(organization)}
+      eyebrow={["Sohoj Learning Journal", "সহজ একাডেমি শিক্ষা-জার্নাল"]}
       title={[
         "Small ideas for better learning.",
         "আরও ভালো শেখার জন্য ছোট কিছু ভাবনা।",
@@ -134,4 +130,14 @@ export default async function JournalPage({
       </section>
     </PublicPageShell>
   );
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ organization?: string }>;
+}): Promise<Metadata> {
+  const { organization } = await searchParams;
+  const site = await getSiteSettings(publicSlug(organization));
+  return { title: { absolute: "Journal | " + site.nameEn } };
 }

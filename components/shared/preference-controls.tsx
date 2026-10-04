@@ -44,6 +44,8 @@ export function PreferenceControls({
       <button
         type="button"
         onClick={() => setLocale("bn")}
+        lang="bn"
+        style={{ fontFamily: "var(--font-bn)" }}
         aria-pressed={locale === "bn"}
         className={cn(
           "min-h-9 rounded-lg px-2.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

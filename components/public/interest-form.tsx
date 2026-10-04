@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCrmText } from "@/modules/crm/translations";
+import { useSite } from "@/modules/crm/site/provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
@@ -100,6 +101,7 @@ export function PublicInterestForm({
   const { locale } = useLanguage();
   const tr = useCrmText();
   const bn = locale === "bn";
+  const site = useSite();
   const [selectedOfferingId, setSelectedOfferingId] =
     useState(defaultOfferingId);
   const selectedOffering = useMemo(
@@ -260,7 +262,7 @@ export function PublicInterestForm({
         </div>
 
         <AcknowledgementSlip
-          organizationName={organizationName}
+          organizationName={site ? (bn ? site.nameBn : site.nameEn) : organizationName}
           message={message}
           bn={bn}
         />

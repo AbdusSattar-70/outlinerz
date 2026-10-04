@@ -1,4 +1,6 @@
 "use client";
+import Logo from "@/components/shared/logo";
+import { useSite } from "@/modules/crm/site/provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -7,7 +9,6 @@ import {
   Settings2,
   Building2,
   LogOut,
-  BookOpenCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,6 +40,12 @@ export function WorkspaceShell({
 }) {
   const { locale } = useLanguage();
   const bn = locale === "bn";
+  const site = useSite();
+  const organizationName = site
+    ? bn
+      ? site.nameBn
+      : site.nameEn
+    : organization.name;
   const path = usePathname();
   const admin = ["OWNER", "ADMIN"].includes(organization.role);
   const links = [
@@ -68,6 +75,12 @@ export function WorkspaceShell({
           },
           ...[
             {
+              href: "/dashboard/crm/website",
+              en: "CRM management dashboard",
+              bn: "প্রতিষ্ঠানের যোগাযোগ ব্যবস্থাপনা",
+              icon: Settings2,
+            },
+            {
               href: "/dashboard/crm/manage",
               en: "Manage CRM",
               bn: "যোগাযোগ ব্যবস্থাপনা",
@@ -88,10 +101,12 @@ export function WorkspaceShell({
             href="/dashboard"
             className="flex min-h-14 items-center gap-3 rounded-lg px-2"
           >
-            <BookOpenCheck className="size-9 shrink-0 text-primary" />
+            <Logo variant="mark" size={36} priority />
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-sm font-bold">{organization.name}</p>
-              <p className="text-[11px] text-muted-foreground">Outlinerz</p>
+              <p className="truncate text-sm font-bold">{organizationName}</p>
+              <p className="truncate text-[11px] text-sidebar-foreground/60">
+                {bn ? "প্রতিষ্ঠানের কার্যক্রম" : "Operations ERP"}
+              </p>
             </div>
           </Link>
         </SidebarHeader>
@@ -148,7 +163,7 @@ export function WorkspaceShell({
           <SidebarTrigger />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
-              Outlinerz
+              {organizationName}
             </p>
             <h1 className="truncate text-sm font-semibold sm:text-base">
               {current ? (bn ? current.bn : current.en) : organization.name}

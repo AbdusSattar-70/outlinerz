@@ -1,5 +1,6 @@
 "use client";
 
+import { useSite, resolveSiteText } from "@/modules/crm/site/provider";
 import { useLanguage } from "@/components/providers/language-provider";
 
 /** Decode accidental literal \\uXXXX sequences from bad encoding pipelines. */
@@ -10,14 +11,12 @@ function decodeUnicodeEscapes(value: string): string {
   );
 }
 
-export function LocalizedText({
-  en,
-  bn,
-}: {
-  en: string;
-  bn: string;
-}) {
+export function LocalizedText({ en, bn }: { en: string; bn: string }) {
   const { locale } = useLanguage();
-  const text = locale === "bn" ? decodeUnicodeEscapes(bn) : decodeUnicodeEscapes(en);
+  const resolved = resolveSiteText(useSite(), en, bn);
+  en = resolved.en;
+  bn = resolved.bn;
+  const text =
+    locale === "bn" ? decodeUnicodeEscapes(bn) : decodeUnicodeEscapes(en);
   return <>{text}</>;
 }

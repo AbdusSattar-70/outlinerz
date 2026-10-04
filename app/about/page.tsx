@@ -1,5 +1,7 @@
+import { getSiteSettings } from "@/modules/crm/site/server";
+import { publicSlug } from "@/modules/crm/public";
 import type { Metadata } from "next";
-import Image from "next/image";
+import { SiteImage } from "@/modules/crm/site/provider";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -9,12 +11,6 @@ import {
 } from "lucide-react";
 import { LocalizedText } from "@/components/shared/localized-text";
 import { PublicPageShell } from "@/modules/home/public-page-shell";
-
-export const metadata: Metadata = {
-  title: "About Outlinerz",
-  description:
-    "Learn about Outlinerz's purpose, learning approach and commitment to focused academic support.",
-};
 
 const commitments = [
   {
@@ -57,21 +53,21 @@ export default async function AboutPage({
   const { organization } = await searchParams;
   return (
     <PublicPageShell
-      organizationSlug={organization}
-      eyebrow={["About Outlinerz", "Outlinerz সম্পর্কে"]}
+      organizationSlug={publicSlug(organization)}
+      eyebrow={["About Sohoj Academy", "সহজ একাডেমি সম্পর্কে"]}
       title={[
         "A focused place to learn with confidence.",
         "আত্মবিশ্বাস নিয়ে শেখার একটি মনোযোগী পরিবেশ।",
       ]}
       description={[
-        "Outlinerz supports students in Classes 8–12 with clear teaching, purposeful practice and a steady view of progress.",
-        "Outlinerz ৮–১২ম শ্রেণির শিক্ষার্থীদের স্পষ্ট পাঠদান, উদ্দেশ্যপূর্ণ অনুশীলন এবং অগ্রগতির নিয়মিত ধারণা দিয়ে সহায়তা করে।",
+        "Sohoj Academy supports students in Classes 8–12 with clear teaching, purposeful practice and a steady view of progress.",
+        "সহজ একাডেমি ৮–১২ম শ্রেণির শিক্ষার্থীদের স্পষ্ট পাঠদান, উদ্দেশ্যপূর্ণ অনুশীলন এবং অগ্রগতির নিয়মিত ধারণা দিয়ে সহায়তা করে।",
       ]}
     >
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-6 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-16">
         <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl shadow-blue-950/30">
-          <Image
-            src="/images/sohoj-classroom.webp"
+          <SiteImage
+            kind="heroImage"
             alt="Illustrative classroom photo of a teacher guiding students through a lesson"
             width={1672}
             height={941}
@@ -150,7 +146,7 @@ export default async function AboutPage({
             ))}
           </div>
           <Link
-            href="/#programs"
+            href={`/?organization=${encodeURIComponent(publicSlug(organization))}#programs`}
             className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-500 px-5 text-sm font-semibold text-white transition hover:bg-blue-400"
           >
             <LocalizedText
@@ -163,4 +159,14 @@ export default async function AboutPage({
       </section>
     </PublicPageShell>
   );
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ organization?: string }>;
+}): Promise<Metadata> {
+  const { organization } = await searchParams;
+  const site = await getSiteSettings(publicSlug(organization));
+  return { title: { absolute: "About | " + site.nameEn } };
 }

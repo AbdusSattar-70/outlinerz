@@ -1,6 +1,6 @@
 # Outlinerz CRM interface
 
-This feature stays on `feature/organization-onboarding`. It restores the Sohoj public page layout, programme cards, interest/admission enquiry form, searchable prospect queue and master-data editor. The sidebar uses the source UI components with organization membership and role checks. Branding is Outlinerz; EN and বাংলা are separate, persistent language choices. A self-hosted Noto Sans Bengali variable font (SIL Open Font License, included beside the font) keeps Bengali readable without Google font requests or an installed system font.
+This feature stays on `feature/organization-onboarding`. It restores the Sohoj public page layout, programme cards, interest/admission enquiry form, searchable prospect queue and master-data editor. The sidebar uses the source UI components with organization membership and role checks. The Sohoj presentation is a reusable template; organization branding and bilingual public copy are configured separately in `/dashboard/crm/website`. EN and বাংলা are separate, persistent language choices. A self-hosted Noto Sans Bengali variable font (SIL Open Font License, included beside the font) keeps Bengali readable without Google font requests or an installed system font.
 
 ## Local update
 
@@ -13,7 +13,7 @@ pnpm exec supabase migration list
 pnpm dev
 ```
 
-Keep the installed `01_outlinerz_eduops_baseline.sql` unchanged. The forward migrations are `20261004003000_organization_onboarding.sql` and `20261004010000_crm_interface.sql`. These commands apply pending changes; never run a remote reset.
+Keep the installed `01_outlinerz_eduops_baseline.sql` unchanged. The forward migrations are `02_organization_onboarding.sql`, `03_crm_interface.sql` and `04_crm_site_management.sql`. These commands apply pending changes; never run a remote reset.
 
 Public links select an organization explicitly: `/?organization=your-slug` and `/interest?organization=your-slug`. For one organization's default public website, set `NEXT_PUBLIC_ORGANIZATION_SLUG=your-slug` in `.env.local`. Use the existing project's Supabase URL and publishable key. A missing slug shows an empty catalogue and unavailable registration, rather than choosing an arbitrary tenant.
 
@@ -38,7 +38,7 @@ pnpm lint
 pnpm build
 ```
 
-The database suite runs 79 assertions in isolated PGlite with mocked Auth/Storage. It verifies tenant isolation, controlled roles, stable retries, public projections, capacity/fee results, atomic follow-up, lost reason, immutable history, consent-free enquiries and intake limits.
+The database suite runs 95 assertions in isolated PGlite with mocked Auth/Storage. It verifies tenant isolation, controlled roles, stable retries, public projections, capacity/fee results, atomic follow-up, lost reason, immutable history, consent-free enquiries and intake limits.
 
 Browser contracts use a local mocked Supabase HTTP server, never hosted credentials. Ports 54321 and 3100 must be free. Build with the local test settings before running:
 
@@ -49,8 +49,18 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE
 npm --prefix scripts/ui test
 ```
 
-An existing executable can be supplied with `UI_CHROMIUM_PATH=/path/to/chromium`. The browser suite checks persisted language changes, tenant links, public submission/acknowledgement, queue filtering, profile/follow-up, master editing and mobile layout. The production build, TypeScript check, 79 database assertions and nine browser checks passed. Lint has no errors and 16 existing warnings. Desktop/mobile screenshots were reviewed with Bengali glyphs rendered. Mock browser sessions test presentation/API contracts, not hosted Auth security. Rebuild with your real local settings before using your Supabase project.
+An existing executable can be supplied with `UI_CHROMIUM_PATH=/path/to/chromium`. The browser suite checks persisted language changes, tenant links, public submission/acknowledgement, queue filtering, profile/follow-up, master editing and mobile layout. The new settings are covered by database permission, idempotency, conflict, audit and public projection checks, plus a mocked browser management-to-public update check. Mock browser sessions test presentation/API contracts, not hosted Auth security. Rebuild with your real local settings before using your Supabase project.
 
 ## Remaining scope
 
-The unified course wizard, direct student admission, academic operations, operational finance and other legacy ERP routes need their own fresh-schema ports. Those routes remain redirected to the dashboard. Programme cards display published database offerings; this commit does not introduce an offering publication editor. Hosted signup/email, real multi-user sessions and live migration acceptance still require the user's Supabase environment. No hosted database was changed during development.
+The unified course wizard, direct student admission, academic operations, operational finance and other legacy ERP routes need their own fresh-schema ports. Those routes remain redirected to the dashboard. Programme cards display published database offerings; the CRM management dashboard edits publication copy, visibility and intake state for existing offerings. Creating offerings remains part of the course workflow. Hosted signup/email, real multi-user sessions and live migration acceptance still require the user's Supabase environment. No hosted database was changed during development.
+
+## Organization management dashboard
+
+Owner/admin access: `/dashboard/crm/website`. The original Sohoj homepage, About, FAQ and Journal element styling is retained from source commit `00f11f2358516bc7362e1984836f09584085b4e7`; names, original image logo treatment and images are data bindings rather than a new interface. The prospect detail structure and acknowledgement print styling also come from that source. EN/বাংলা remains a persistent language toggle.
+
+Identity fields cover English/Bangla names, full logo and logo mark URLs, classroom and learning images, phone, email and address in both languages. The separate management page contains grouped bilingual editorial fields for the home, About, FAQ, Journal and registration pages, along with programme publication controls. Asset fields accept a local public path or an HTTPS image URL. The source logo/images are the initial template assets; replace them with each organization's assets in management.
+
+`crm_sites` stores one configuration per organization. Only owners/admins can read its management table. Saves check the selected organization on the server and database, require CRM enabled, compare the revision, preserve stable request retries, update the canonical organization name atomically and record audit history. Public visitors use a bounded projection by organization slug; private membership and organization identifiers are excluded. Public page titles use the configured organization name. Contacts appear in the existing footer; no settings controls appear on the public pages.
+
+Existing offering publication edits use an expected-value comparison, scoped row lock and stable command request. They change the display name, bilingual card copy, schedule/requirements/admission policy, website visibility and intake status. Fees, enrollments, capacity and academic references stay with their operational workflows. Directory controls remain at `/dashboard/crm/manage`.

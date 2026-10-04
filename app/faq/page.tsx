@@ -1,21 +1,17 @@
+import { getSiteSettings } from "@/modules/crm/site/server";
+import { publicSlug } from "@/modules/crm/public";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { LocalizedText } from "@/components/shared/localized-text";
 import { PublicPageShell } from "@/modules/home/public-page-shell";
 
-export const metadata: Metadata = {
-  title: "Frequently Asked Questions",
-  description:
-    "Answers about Outlinerz programmes, interest registration, admissions and learning support.",
-};
-
 const faqs = [
   [
-    "Which students does Outlinerz support?",
-    "Outlinerz focuses on academic support for Classes 8–10. The current programme offerings show the classes and subjects available for registration.",
-    "Outlinerz কোন শিক্ষার্থীদের সহায়তা করে?",
-    "Outlinerz ৮–১০ম শ্রেণির একাডেমিক সহায়তায় গুরুত্ব দেয়। বর্তমানে কোন শ্রেণি ও বিষয়ের জন্য নিবন্ধন চলছে তা প্রোগ্রাম কার্ডে দেখা যাবে।",
+    "Which students does Sohoj Academy support?",
+    "Sohoj Academy focuses on academic support for Classes 8–10. The current programme offerings show the classes and subjects available for registration.",
+    "সহজ একাডেমি কোন শিক্ষার্থীদের সহায়তা করে?",
+    "সহজ একাডেমি ৮–১০ম শ্রেণির একাডেমিক সহায়তায় গুরুত্ব দেয়। বর্তমানে কোন শ্রেণি ও বিষয়ের জন্য নিবন্ধন চলছে তা প্রোগ্রাম কার্ডে দেখা যাবে।",
   ],
   [
     "Does registering interest confirm admission?",
@@ -57,7 +53,7 @@ export default async function FaqPage({
   const { organization } = await searchParams;
   return (
     <PublicPageShell
-      organizationSlug={organization}
+      organizationSlug={publicSlug(organization)}
       eyebrow={["Help for families", "পরিবারের জন্য সহায়তা"]}
       title={["Questions, answered clearly.", "আপনার প্রশ্নের সহজ উত্তর।"]}
       description={[
@@ -98,7 +94,7 @@ export default async function FaqPage({
             />
           </p>
           <Link
-            href="/#programs"
+            href={`/?organization=${encodeURIComponent(publicSlug(organization))}#programs`}
             className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-semibold text-white hover:bg-blue-400"
           >
             <LocalizedText en="Browse programmes" bn="প্রোগ্রাম দেখুন" />
@@ -108,4 +104,14 @@ export default async function FaqPage({
       </section>
     </PublicPageShell>
   );
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ organization?: string }>;
+}): Promise<Metadata> {
+  const { organization } = await searchParams;
+  const site = await getSiteSettings(publicSlug(organization));
+  return { title: { absolute: "FAQ | " + site.nameEn } };
 }

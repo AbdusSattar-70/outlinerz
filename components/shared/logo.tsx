@@ -1,28 +1,49 @@
 "use client";
-import { BookOpenCheck } from "lucide-react";
-export default function Logo({
-  size = 88,
-  className = "",
-  variant = "full",
-}: {
+
+import { useSite } from "@/modules/crm/site/provider";
+import Image from "next/image";
+
+interface LogoProps {
   size?: number;
   priority?: boolean;
   className?: string;
   variant?: "full" | "mark";
-}) {
+}
+
+export default function Logo({
+  size = 88,
+  priority = false,
+  className = "",
+  variant = "full",
+}: LogoProps) {
+  const site = useSite();
+  const isMark = variant === "mark";
+
   return (
-    <span className={`inline-flex shrink-0 items-center gap-2 ${className}`}>
-      <BookOpenCheck
-        aria-hidden="true"
-        style={{
-          width: variant === "mark" ? size : Math.min(size, 36),
-          height: variant === "mark" ? size : Math.min(size, 36),
-        }}
-        className="text-primary"
-      />
-      {variant === "full" && (
-        <span className="text-lg font-bold tracking-tight">Outlinerz</span>
-      )}
-    </span>
+    <Image
+      src={
+        site
+          ? isMark
+            ? site.mark
+            : site.logo
+          : isMark
+            ? "/branding/sohoj-academy-mark.webp"
+            : "/branding/sohoj-academy-logo.webp"
+      }
+      alt={
+        site
+          ? site.nameEn
+          : isMark
+            ? "Sohoj Academy"
+            : "সহজ একাডেমি — SOHOJ ACADEMY — Learning made easy & fun"
+      }
+      width={isMark ? 512 : 192}
+      height={isMark ? 512 : 192}
+      unoptimized
+      priority={priority}
+      sizes={`${size}px`}
+      style={{ width: size, height: "auto" }}
+      className={`shrink-0 object-contain ${className}`}
+    />
   );
 }

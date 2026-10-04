@@ -1,6 +1,11 @@
 // Narrow, reviewed contract for this feature; legacy types/database.ts is not used.
 export type Role =
-  "OWNER" | "ADMIN" | "ACADEMIC" | "FINANCE" | "OPERATOR" | "TEACHER";
+  | "OWNER"
+  | "ADMIN"
+  | "ACADEMIC"
+  | "FINANCE"
+  | "OPERATOR"
+  | "TEACHER";
 export type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -10,6 +15,12 @@ export type Table<Row> = {
 export type OrganizationDatabase = {
   public: {
     Tables: {
+      crm_sites: Table<{
+        organization_id: string;
+        revision: number;
+        settings: import("@/modules/crm/site/model").SiteSettings;
+        updated_at: string;
+      }>;
       organizations: Table<{
         id: string;
         name: string;
@@ -91,6 +102,32 @@ export type OrganizationDatabase = {
     };
     Views: Record<string, never>;
     Functions: {
+      crm_site_offering: {
+        Args: {
+          p_org: string;
+          p_request: string;
+          p_offering: string;
+          p_expected: import("@/modules/crm/site/offering-editor").OfferingPublication;
+          p_input: import("@/modules/crm/site/offering-editor").OfferingPublication;
+        };
+        Returns: { id: string };
+      };
+      crm_site_public: {
+        Args: { p_slug: string };
+        Returns: {
+          name: string;
+          settings: import("@/modules/crm/site/model").SiteSettings | null;
+        } | null;
+      };
+      crm_site_save: {
+        Args: {
+          p_org: string;
+          p_request: string;
+          p_revision: number;
+          p_settings: import("@/modules/crm/site/model").SiteSettings;
+        };
+        Returns: { revision: number };
+      };
       crm_master: {
         Args: {
           p_org: string;

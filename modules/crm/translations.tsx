@@ -1,6 +1,43 @@
 "use client";
 import { useLanguage } from "@/components/providers/language-provider";
 const bangla: Record<string, string> = {
+  "Applicant choices — not verified placement":
+    "আবেদনকারীর পছন্দ — যাচাই করা ভর্তি নয়",
+  "These statements are preserved separately. Verify identity and choose the correct programme and batch when starting admission.":
+    "আবেদনের তথ্য আলাদাভাবে সংরক্ষিত আছে। ভর্তির আগে পরিচয় যাচাই করে সঠিক প্রোগ্রাম ও ব্যাচ নির্বাচন করুন।",
+  Created: "তৈরি হয়েছে",
+  "School name needs staff review":
+    "বিদ্যালয়ের নাম কর্মীদের যাচাই করা প্রয়োজন",
+  "Open Manage CRM": "তথ্যতালিকা খুলুন",
+  "Back to Prospects": "সম্ভাব্য শিক্ষার্থীর তালিকায় ফিরুন",
+  "Current Class": "বর্তমান শ্রেণি",
+  "Lead Source": "যোগাযোগের উৎস",
+  "Preferred Schedule": "পছন্দের সময়সূচি",
+  "Preferred Days": "পছন্দের দিন",
+  "Trial Interest": "পরীক্ষামূলক ক্লাসের আগ্রহ",
+  "Interested Programs": "পছন্দের প্রোগ্রাম",
+  "Interested Subjects": "পছন্দের বিষয়",
+  "Original Note": "প্রাথমিক মন্তব্য",
+  Referral: "পরিচয়ের সূত্র",
+  "Newest activity first. Existing timeline records are not rewritten.":
+    "সর্বশেষ কার্যক্রম আগে দেখানো হয়। পূর্বের ইতিহাস পরিবর্তন করা হয় না।",
+  "No follow-up activity has been recorded yet.":
+    "এখনও যোগাযোগের কোনো কার্যক্রম সংরক্ষিত হয়নি।",
+  "Submitted as free text": "আবেদনকারীর লেখা নাম",
+  "Confirm or create the school in Manage CRM, then continue follow-up or admission.":
+    "তথ্যতালিকায় বিদ্যালয় যাচাই বা যুক্ত করে পরবর্তী যোগাযোগ বা ভর্তি সম্পন্ন করুন।",
+  "Interest request": "আগ্রহের আবেদন",
+  "Admission request": "ভর্তির আবেদন",
+  "Prospect history remains linked after admission.":
+    "ভর্তির পরও আবেদনকারীর পূর্বের ইতিহাস সংযুক্ত থাকে।",
+  Next: "পরবর্তী",
+  "needs review": "যাচাই প্রয়োজন",
+  Class: "শ্রেণি",
+  Programme: "প্রোগ্রাম",
+  Subjects: "বিষয়সমূহ",
+  "General interest": "সাধারণ আগ্রহ",
+  "Not provided": "দেওয়া হয়নি",
+
   Tuition: "টিউশন ফি",
   MONTHLY: "মাসিক",
   ONE_TIME: "এককালীন",
@@ -34,7 +71,6 @@ const bangla: Record<string, string> = {
   "Alternate mobile": "বিকল্প ফোন",
   "Preferred schedule": "পছন্দের সময়",
   "Preferred days": "পছন্দের দিন",
-  Referral: "সুপারিশ",
   "Student email": "শিক্ষার্থীর ইমেইল",
   "Date of birth": "জন্ম তারিখ",
   Gender: "লিঙ্গ",
@@ -207,7 +243,6 @@ const bangla: Record<string, string> = {
   "Academic years": "শিক্ষাবর্ষ",
   Classes: "শ্রেণি",
   Groups: "বিভাগ",
-  Subjects: "বিষয়",
   Programmes: "প্রোগ্রাম",
   Schools: "বিদ্যালয়",
   "Lead sources": "আগ্রহের উৎস",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { SiteImage, SiteContact, SiteName } from "@/modules/crm/site/provider";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -105,14 +105,14 @@ export async function HomePageContent({ slug }: { slug?: string }) {
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
                 <LocalizedText
-                  en="Outlinerz is built around focused teaching, regular practice and measurable progress—so students know what to improve and guardians can follow the learning journey with confidence."
-                  bn="Outlinerzতে মনোযোগী পাঠদান, নিয়মিত অনুশীলন এবং পরিমাপযোগ্য অগ্রগতির ওপর গুরুত্ব দেওয়া হয়—যাতে শিক্ষার্থী বুঝতে পারে কোথায় উন্নতি প্রয়োজন এবং অভিভাবক আত্মবিশ্বাসের সঙ্গে শেখার যাত্রা অনুসরণ করতে পারেন।"
+                  en="Sohoj Academy is built around focused teaching, regular practice and measurable progress—so students know what to improve and guardians can follow the learning journey with confidence."
+                  bn="সহজ একাডেমিতে মনোযোগী পাঠদান, নিয়মিত অনুশীলন এবং পরিমাপযোগ্য অগ্রগতির ওপর গুরুত্ব দেওয়া হয়—যাতে শিক্ষার্থী বুঝতে পারে কোথায় উন্নতি প্রয়োজন এবং অভিভাবক আত্মবিশ্বাসের সঙ্গে শেখার যাত্রা অনুসরণ করতে পারেন।"
                 />
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/interest?organization=${encodeURIComponent(slug ?? "")}`}
+                  href={`/interest${slug ? `?organization=${encodeURIComponent(slug)}` : ""}`}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(29,78,216,0.65)] transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
                 >
                   <LocalizedText
@@ -151,8 +151,8 @@ export async function HomePageContent({ slug }: { slug?: string }) {
                 aria-hidden="true"
               />
               <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 shadow-[0_35px_90px_-35px_rgba(2,6,23,.8)]">
-                <Image
-                  src="/images/sohoj-classroom.webp"
+                <SiteImage
+                  kind="heroImage"
                   alt="Illustrative classroom photo of a teacher guiding students through a lesson"
                   width={1672}
                   height={941}
@@ -201,8 +201,8 @@ export async function HomePageContent({ slug }: { slug?: string }) {
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-300">
                 <LocalizedText
-                  en="The Learning Method"
-                  bn="Outlinerzর শেখার পদ্ধতি"
+                  en="The Sohoj Learning Method"
+                  bn="সহজ একাডেমির শেখার পদ্ধতি"
                 />
               </p>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
@@ -228,8 +228,8 @@ export async function HomePageContent({ slug }: { slug?: string }) {
                   aria-hidden="true"
                 />
                 <div className="relative h-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-[0_30px_80px_-30px_rgba(2,6,23,0.75)]">
-                  <Image
-                    src="/images/sohoj-learning.webp"
+                  <SiteImage
+                    kind="learningImage"
                     alt="Teacher guiding students through a focused lesson"
                     width={1672}
                     height={941}
@@ -269,7 +269,7 @@ export async function HomePageContent({ slug }: { slug?: string }) {
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
                           <LocalizedText
-                            en="Learning Method"
+                            en="Sohoj Learning Method"
                             bn="সহজ লার্নিং মেথড"
                           />
                         </p>
@@ -379,7 +379,7 @@ export async function HomePageContent({ slug }: { slug?: string }) {
           <div className="mx-auto max-w-7xl px-5 py-18 sm:px-6 lg:px-8 lg:py-20">
             <div className="max-w-2xl">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700 dark:text-blue-400">
-                <LocalizedText en="Why Outlinerz" bn="কেন Outlinerz" />
+                <LocalizedText en="Why Sohoj" bn="কেন সহজ একাডেমি" />
               </p>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                 <LocalizedText
@@ -416,7 +416,7 @@ export async function HomePageContent({ slug }: { slug?: string }) {
           <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
               <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                SOHOJ ACADEMY
+                <SiteName uppercase />
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
                 <LocalizedText
@@ -433,7 +433,7 @@ export async function HomePageContent({ slug }: { slug?: string }) {
                 <LocalizedText en="View Programs" bn="প্রোগ্রাম দেখুন" />
               </Link>
               <Link
-                href={`/interest?organization=${encodeURIComponent(slug ?? "")}`}
+                href={`/interest${slug ? `?organization=${encodeURIComponent(slug)}` : ""}`}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
               >
                 <LocalizedText en="Register Interest" bn="আগ্রহ নিবন্ধন করুন" />
@@ -445,21 +445,33 @@ export async function HomePageContent({ slug }: { slug?: string }) {
 
       <footer className="border-t border-border bg-background">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <Logo size={76} />
+          <div>
+            <Logo size={76} />
+            <SiteContact />
+          </div>
           <p className="text-xs leading-5 text-muted-foreground">
             <LocalizedText
-              en="© Outlinerz. Academic support and Digital Campus."
-              bn="© Outlinerz। একাডেমিক সহায়তা ও ডিজিটাল ক্যাম্পাস।"
+              en="© Sohoj Academy. Academic support and Digital Campus."
+              bn="© সহজ একাডেমি। একাডেমিক সহায়তা ও ডিজিটাল ক্যাম্পাস।"
             />
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            <Link href="/about" className="hover:text-foreground">
+            <Link
+              href={`/about${slug ? `?organization=${encodeURIComponent(slug)}` : ""}`}
+              className="hover:text-foreground"
+            >
               <LocalizedText en="About" bn="পরিচিতি" />
             </Link>
-            <Link href="/faq" className="hover:text-foreground">
+            <Link
+              href={`/faq${slug ? `?organization=${encodeURIComponent(slug)}` : ""}`}
+              className="hover:text-foreground"
+            >
               <LocalizedText en="FAQ" bn="প্রশ্নোত্তর" />
             </Link>
-            <Link href="/journal" className="hover:text-foreground">
+            <Link
+              href={`/journal${slug ? `?organization=${encodeURIComponent(slug)}` : ""}`}
+              className="hover:text-foreground"
+            >
               <LocalizedText en="Journal" bn="শিক্ষা-জার্নাল" />
             </Link>
           </div>

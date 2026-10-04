@@ -6,6 +6,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import Logo from "@/components/shared/logo";
 import { PreferenceControls } from "@/components/shared/preference-controls";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useSite, resolveSiteText } from "@/modules/crm/site/provider";
 import { cn } from "@/lib/utils";
 
 export default function Navbar({
@@ -13,7 +14,9 @@ export default function Navbar({
 }: {
   organizationSlug?: string;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const site = useSite();
+  const why = resolveSiteText(site, "Why Sohoj", "কেন সহজ একাডেমি");
   const homeHref = organizationSlug
     ? `/?organization=${encodeURIComponent(organizationSlug)}`
     : "/";
@@ -29,7 +32,7 @@ export default function Navbar({
   const links = [
     [t("programs"), "/#programs"],
     [t("learningMethod"), "/#method"],
-    [t("whySohoj"), "/#why-sohoj"],
+    [locale === "bn" ? why.bn : why.en, "/#why-sohoj"],
     [t("aboutUs"), "/about"],
     [t("faq"), "/faq"],
     [t("journal"), "/journal"],
@@ -87,7 +90,7 @@ export default function Navbar({
       >
         <Link
           href={homeHref}
-          aria-label="Outlinerz home"
+          aria-label={`${site?.nameEn || "Sohoj Academy"} home`}
           className="relative z-10 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <Logo size={64} priority className="sm:hidden" />
