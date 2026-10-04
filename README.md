@@ -17,7 +17,7 @@ pnpm exec supabase db push
 pnpm exec supabase migration list
 ```
 
-There is one migration: `01_simplified_baseline.sql`. The application uses the default `public` schema. No additional exposed-schema setting is required. `academy_private` stays private. No database reset, repair, role cleanup, migration squash or old migrations are needed for the new project.
+The fresh schema is installed by `01_simplified_baseline.sql`; `02_explicit_function_owners.sql` stabilizes privileged function ownership for hosted CLI roles. The application uses the default `public` schema. No additional exposed-schema setting is required. `academy_private` stays private. No database reset, repair, role cleanup, migration squash or old migrations are needed for the new project.
 
 Update `.env.local` with the **new project's** URL and publishable key:
 
