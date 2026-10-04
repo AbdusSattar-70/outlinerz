@@ -3,6 +3,11 @@ set search_path=academy,extensions,public;
 create schema academy_private;
 revoke all on schema academy_private from public,anon,authenticated;
 create role academy_executor nologin nobypassrls;
+-- Hosted Supabase migrations run without SUPERUSER. Ownership transfers need
+-- SET ROLE membership and CREATE on the target schema. Only the migration
+-- administrator receives membership; API roles must never receive it.
+do $$ begin execute format('grant academy_executor to %I',current_user); end $$;
+grant create on schema academy to academy_executor;
 grant usage on schema academy,academy_private,auth to academy_executor;
 grant execute on function auth.uid() to academy_executor;
 create table academy.branch_owners(organization_id uuid primary key references academy.organizations(id),user_id uuid not null references auth.users(id));

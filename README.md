@@ -66,3 +66,9 @@ pnpm build
 ```
 
 Database validation runs real PostgreSQL functions and RLS through PGlite with local Supabase identity/storage fixtures. It never connects to a hosted database. The browser integration suite uses a local HTTP adapter backed by the same migrated database; it requires a Chromium executable and the Playwright dependency under `scripts/ui`.
+
+## Recovery from migration 06 ownership error
+
+If migration 05 succeeded and 06 failed with `must be able to SET ROLE "academy_executor"`, pull the latest `feature/simplified_version` and run `pnpm exec supabase db push` again. Migration 06 now explicitly grants the migration administrator membership in its new executor role and grants the executor CREATE on the academy schema, as required for function ownership transfer. No API role receives that membership. Failed migrations are transactional; do not reset the database or mark migration 06 applied manually.
+
+Validation applies 01–05 first, then 06–10 as a CREATEROLE/BYPASSRLS administrator without SUPERUSER, reproducing the hosted ownership constraint.
