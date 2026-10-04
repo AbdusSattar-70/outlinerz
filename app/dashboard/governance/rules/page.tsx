@@ -15,7 +15,7 @@ export default async function BusinessRulesPage() {
       <PageHeader
         eyebrow="Governance"
         title="Business Rules"
-        description="Set batch capacity, admission payment requirements and teacher compensation percentages. Changes apply to future operations; historical records keep the terms originally used."
+        description="Set academic batch capacity. Changes apply to future operations; historical records remain auditable."
       />
 
       {context.permissions.includes("system.settings.manage") && (

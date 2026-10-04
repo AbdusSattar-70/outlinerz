@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/erp/page-header";
-import { RolePermissionEditor } from "@/modules/settings/components/role-permission-editor";
 import { requirePermission } from "@/modules/platform/auth/erp-context";
 import { getSettingsOverview } from "@/modules/settings/queries";
 import { can } from "@/types/erp";
@@ -8,7 +7,6 @@ import { can } from "@/types/erp";
 export default async function AccessSecurityPage() {
   const context = await requirePermission("system.settings.view");
   const data = await getSettingsOverview();
-  const canManageRoles = can(context, "system.roles.manage");
   const canManageUsers = can(context, "system.users.manage");
 
   return (
@@ -40,7 +38,7 @@ export default async function AccessSecurityPage() {
             <SetupLink
               href="/dashboard/governance/rules"
               title="Operating Rules"
-              description="Capacity, enrollment and compensation settings."
+              description="Academic batch capacity and policy history."
             />
           )}
         </div>
@@ -61,9 +59,9 @@ export default async function AccessSecurityPage() {
         {canManageUsers && (
           <Link
             className="rounded-xl border px-4 py-3 text-sm"
-            href="/dashboard/staff#staff-access"
+            href="/branches"
           >
-            Staff access requests
+            Branch membership
           </Link>
         )}
       </div>
@@ -91,18 +89,8 @@ export default async function AccessSecurityPage() {
           Review the abilities attached to each role. Server and database checks
           enforce these permissions.
         </p>
-        {canManageRoles ? (
-          <div className="rounded-2xl border bg-card p-5 sm:p-6">
-            <RolePermissionEditor
-              roles={data.roles}
-              permissions={data.permissions}
-            />
-          </div>
-        ) : (
-          <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
-            Role permission changes require admin access.
-          </p>
-        )}
+        <div className="grid gap-3 sm:grid-cols-2">{data.roles.filter(role=>role.isActive).map(role=><article key={role.id} className="rounded-xl border p-4"><h3 className="font-semibold">{role.name}</h3><p className="mt-2 text-sm text-muted-foreground">{role.permissions.map(permission=>permission.name).join(", ")}</p></article>)}</div>
+        <p className="text-sm text-muted-foreground">Role templates are fixed. Assign branch member roles from Branches.</p>
       </section>
     </div>
   );

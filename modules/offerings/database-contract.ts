@@ -20,7 +20,6 @@ type Offering = {
   code: string;
   name: string;
   status: "DRAFT" | "ACTIVE" | "RETIRED";
-  allowed_discount_percentages: number[];
   showcase_title: string | null;
   showcase_title_bn: string | null;
   showcase_description: string | null;
@@ -45,30 +44,6 @@ type Offering = {
   created_at: string;
   updated_at: string;
 };
-type Plan = {
-  id: string;
-  offering_id: string;
-  version: number;
-  status: "DRAFT" | "ACTIVE" | "RETIRED";
-  billing_cycle: "ONE_TIME" | "MONTHLY" | "TERM";
-  due_day: number | null;
-  currency_code: string;
-  effective_from: string;
-  effective_to: string | null;
-  change_reason: string;
-  created_by: string;
-  created_at: string;
-};
-type Component = {
-  id: string;
-  fee_plan_version_id: string;
-  code: string;
-  name: string;
-  amount: number;
-  charge_type: string;
-  recurrence: string;
-  sort_order: number;
-};
 type Group = {
   id: string;
   organization_id: string;
@@ -87,8 +62,6 @@ type ExtendedDatabase = Omit<Database, "public"> & {
     Tables: Database["public"]["Tables"] & {
       academic_groups: ReadonlyTable<Group>;
       programme_offerings: ReadonlyTable<Offering>;
-      fee_plan_versions: ReadonlyTable<Plan>;
-      fee_plan_components: ReadonlyTable<Component>;
       programme_offering_subjects: ReadonlyTable<OfferingSubject>;
     };
     Functions: Database["public"]["Functions"] & {

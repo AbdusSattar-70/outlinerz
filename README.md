@@ -17,7 +17,19 @@ pnpm exec supabase db push
 pnpm exec supabase migration list
 ```
 
-The fresh schema is installed by `01_simplified_baseline.sql`; `02_explicit_function_owners.sql` stabilizes privileged function ownership for hosted CLI roles. The application uses the default `public` schema. No additional exposed-schema setting is required. `academy_private` stays private. No database reset, repair, role cleanup, migration squash or old migrations are needed for the new project.
+The schema now has focused, final-state migrations (01–09), rather than replaying Sohoj's history. They define academic tables, branch identity, admissions/students, teaching, CRM/workforce, constraints/indexes, access/audit, operational roles and the separate demo seed function. Financial tables, empty financial views, financial functions and financial storage columns are not installed. The application uses `public`; `academy_private` stays private.
+
+### If you already installed the previous experimental baseline
+
+This is a replacement migration history, not an incremental upgrade. **Do not run `db push` over that schema.** For a disposable testing project, pull this branch and rebuild it:
+
+```bash
+pnpm exec supabase projects list
+pnpm exec supabase db reset --linked --no-seed
+pnpm exec supabase migration list
+```
+
+The reset erases application data. Check the linked project before confirming. The custom executor role is reused, so no manual role cleanup is required. Demo data is created when you open a branch again. Use a new project instead if you need to retain the old project's data. No reset is needed when installing into a genuinely empty project.
 
 Update `.env.local` with the **new project's** URL and publishable key:
 
@@ -63,6 +75,7 @@ Set `.env.local` using the URL and key shown by the local CLI. The same branch-o
 ```bash
 npm ci --prefix scripts/database
 node scripts/simplified/validate.mjs
+node scripts/database/generate-types.mjs
 pnpm typecheck
 pnpm lint
 pnpm build
@@ -70,4 +83,4 @@ pnpm build
 
 The SQL validation applies the baseline to an empty PostgreSQL database under a migration administrator without SUPERUSER, then exercises branch isolation, finance-free admissions, teacher sessions, public intake and demo seeding. It never connects to your hosted project.
 
-The source UI is pinned to Sohoj Academy commit `00f11f2358516bc7362e1984836f09584085b4e7`. `scripts/simplified/source-sql` holds reviewed assembly inputs, not migrations to run individually. `python scripts/simplified/assemble.py` regenerates the single baseline. Temporary upstream finance definitions are removed before the baseline transaction completes; no financial stores or financial RPC access remain in the resulting database. Future finance workflows will be ported gradually from Sohoj.
+The source UI is pinned to Sohoj Academy commit `00f11f2358516bc7362e1984836f09584085b4e7`. Reviewed SQL migrations are now the source of truth. The historical migration assembler and its SQL inputs have been removed. Some source UI response keys remain nullable/empty during this interface transition; they have no corresponding financial database objects. Future finance requires new explicit migrations and UI contracts.

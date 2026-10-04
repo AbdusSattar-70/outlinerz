@@ -1,45 +1,27 @@
-# Fresh database schema
+# Final academic database model
 
-## Ordered installation
+This branch replaces the experimental history-based baseline. Reviewed final-state migrations are the source of truth; the historical SQL assembler and source migration inputs are removed. The interface still comes from Sohoj Academy, but the database installs only the simplified academic application.
 
-| Migration | Responsibility |
+| File | Responsibility |
 | --- | --- |
-| 01 | Organization, identity, roles and permissions |
-| 02 | Academic directory, offerings, standard fee terms |
-| 03 | CRM, admissions, permanent students and lifecycle |
-| 04 | Billing, payments and adjustments |
-| 05 | Ledger, advances, expenses, referrals and compensation |
-| 06 | Teacher academic records |
-| 07 | Constraints and indexes |
-| 08 | Platform, public CRM, setup and access workflows |
-| 09 | Admission and billing commands |
-| 10 | Accounting and settlement commands |
-| 11 | Teacher academic commands |
-| 12 | RLS, grants, audit and integrity triggers |
-| 13 | Essential system seed and Auth profile synchronization |
-| 14 | Scoped referrer accounts, collection-based acquisition rewards, instant discounts/scholarships and full staff/intake contracts |
-| 15 | Database-paged audit search and permission-scoped daily activity |
+| 01_academic_model.sql | Academic entities, types, identifiers and branch scope columns |
+| 02_identity_and_branches.sql | Verified identity, branch ownership, membership and branch opening |
+| 03_admissions_and_students.sql | Academic admission, consent, enrollment, transfers and student history |
+| 04_teaching_and_assessment.sql | Sessions, attendance, class logs, question bank and assessments |
+| 05_crm_and_workforce.sql | Enquiries, directories, offerings, staff and staff attendance/tasks |
+| 06_academic_integrity.sql | Primary/unique keys, checks, composite branch foreign keys and indexes |
+| 07_access_and_audit.sql | RLS, explicit API grants, stable function ownership and audit triggers |
+| 08_operational_roles.sql | Admin, academic director, operator and teacher roles/permissions |
+| 09_demo_seed.sql | Opt-in demo students, teachers, classroom and lessons |
 
-The 01–13 baseline contains 90 application tables and 113 functions. After refinements 14–15 the current contract has 92 application tables and 126 functions. It installs final definitions directly: no dynamic pg_get_functiondef rewriting or historical rename-and-wrap chain. Private helpers implement transactional stages; only intended RPC entry points receive client execution grants.
+There are no financial tables, empty financial views, financial RPCs, invoice helpers, financial role permissions or fee/discount storage fields. A few nullable/empty JSON response keys remain for compatibility with source UI validators; these are not financial database objects and cannot perform financial operations.
 
-## Removed duplication
+One verified account can belong to multiple branches. All operational records have immutable branch scope. RLS also applies inside academic security-definer functions through a non-login, non-bypass executor role. Privileged bootstrap and membership helpers have the explicit stable postgres owner. Anonymous clients can use guarded public directory/catalogue/intake projections, not query operational tables.
 
-Removed public_admission_applications, admission_requirement_reviews, public_admission_corrections, admission_consent_documents, programme_offering_public_versions, setting_definitions and setting_versions. Public intake uses Prospects plus its original application snapshot. Consent uses physical receipt evidence. Website controls edit current content. Operational rules use the existing business-rule model.
+Branch opening creates separate academic starter directories. The demo checkbox adds eight enrolled students, two teacher records without fake login accounts, a classroom and four lessons within the same transaction. Demo offerings are published for testing. Unchecking it creates templates without sample people and keeps public intake closed.
 
-Obsolete publish_fee_plan and legacy wrapper/approval paths are removed. Admin Finance, transfer and duplicate correction now retain direct authorization evidence. Teacher academic approvals remain. Removed obsolete frontend consumers and regenerated types/database.ts from the new contract.
+This is a fresh-start migration history. Do not push it incrementally over the experimental baseline. For a disposable testing database, use the documented linked reset; otherwise install into a new Supabase project. Hosted databases were not modified during development.
 
-## Initial data
+Validation covers a fresh installation without SUPERUSER, stable helper ownership, absence of financial objects, admission and signed paper consent without fee/referral prerequisites, teacher sessions, branch switching, public intake, membership revocation, immutable scope, composite foreign keys and demo isolation. Browser checks also exercise source academic registers, admission detail/printing and language selection. These are local PostgreSQL/API fixtures, not a claim of hosted Supabase validation.
 
-Seed only organization/campus placeholders, staff roles/permissions, essential payment methods, relationship/source choices, chart of accounts and editable operating defaults. There are no demo students, staff, prospects, academic years, classes, subjects or programmes. Setup creates the actual academic directory. Existing Auth identities can acquire profiles without automatically receiving privileges.
-
-## Integrity and evolution
-
-No direct application INSERT/UPDATE/DELETE grants for anonymous/authenticated clients. Controlled RPCs enforce permission, scope, business transitions and audit. Financial corrections preserve posted evidence; journals remain balanced. Internal fee/policy snapshots preserve historical agreements without exposing version queues to administrators.
-
-After a deployed fresh baseline, append migration 16_<task>.sql and subsequent files. Update generated types and contract consumers together. Do not introduce a second financial/admission model.
-
-## Referral and collection controls
-
-Referral reward contracts pin the applicable rate and first qualifying billing month. Immutable reward entries record signed accrual/correction deltas; refunds and late tuition reductions adjust liability and expense. Staff and external referrers share this contract. Own-account portal reads are controlled RPCs: no guardian/address or arbitrary student access, and no operational ERP grants.
-
-Invoice adjustments retain distinct DISCOUNT/SCHOLARSHIP labels while balanced contra-revenue journals preserve accounting evidence. Payment and optional adjustment commit atomically. Acquisition is removed from new teacher compensation previews to prevent double expense. Profit/loss uses posted revenue less contra-revenue and expense, including accrued referral rewards.
+Future finance work must introduce explicit new tables, permissions, migrations and UI contracts one workflow at a time. Source Sohoj workflows remain the reference; branch scope and audit history remain required.

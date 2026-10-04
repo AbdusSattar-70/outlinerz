@@ -18,13 +18,12 @@ export async function runAdmissionCommand(input: AdmissionCommand): Promise<{
       field: parsed.error.issues[0].path[0]?.toString(),
     };
   const v = parsed.data;
+  if(["PAY","BILL","REFRESH_FEES","SAVE_DISCOUNT"].includes(v.action)) return {ok:false,message:"This version supports academic admission only."};
   const context = await getErpContext();
   const permission =
     v.action === "CREATE_BATCH" || v.action === "EDIT_BATCH"
       ? "academics.manage"
-      : v.action === "PAY"
-        ? "finance.payments.post"
-        : "admissions.create";
+      : "admissions.create";
   if (!context?.permissions.includes(permission))
     return {
       ok: false,
@@ -47,11 +46,6 @@ export async function runAdmissionCommand(input: AdmissionCommand): Promise<{
     code: "code",
     name: "name",
     capacity: "capacity",
-    amount: "amount",
-    paymentMethodId: "payment_method_id",
-    externalReference: "external_reference",
-    discountPercent: "discount_percent",
-    discountReason: "discount_reason",
   } as const;
   for (const [key, column] of Object.entries(fields)) {
     const value = v[key as keyof typeof fields];
@@ -59,19 +53,16 @@ export async function runAdmissionCommand(input: AdmissionCommand): Promise<{
   }
   const db = await admissionClient();
   const command =
-    v.action === "PAY"
-      ? "post_admission_payment"
-      : v.action === "CREATE_BATCH" || v.action === "EDIT_BATCH"
+    v.action === "CREATE_BATCH" || v.action === "EDIT_BATCH"
         ? "batch_command"
         : v.action === "CREATE"
           ? "create_prospect_admission"
           : "admission_command";
   const { data, error } = await db.rpc(command, { p_input: payload });
   if (error) return { ok: false, message: error.message };
-  const result = data as { id?: string; status?: string; receipt_no?: string };
+  const result = data as { id?: string; status?: string };
   for (const path of [
     "/dashboard/admissions",
-    "/dashboard/finance/billing",
     "/dashboard/academics/batches",
     "/dashboard/students",
     "/dashboard/crm/prospects",
@@ -83,9 +74,7 @@ export async function runAdmissionCommand(input: AdmissionCommand): Promise<{
     revalidatePath(`/dashboard/admissions/${result.id}`);
   return {
     ok: true,
-    message: result.receipt_no
-      ? `Payment posted. Receipt ${result.receipt_no}.`
-      : v.action === "CREATE_BATCH"
+    message: v.action === "CREATE_BATCH"
         ? "Batch created."
         : v.action === "EDIT_BATCH"
           ? "Batch updated."

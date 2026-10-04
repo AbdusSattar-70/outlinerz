@@ -2,10 +2,10 @@ import {PGlite} from '../database/node_modules/@electric-sql/pglite/dist/index.j
 import {readFile,readdir} from 'node:fs/promises';
 export const db=new PGlite();
 await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema extensions;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,created_at timestamptz default now(),raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$; grant usage on schema auth to anon,authenticated,service_role;grant execute on function auth.uid() to anon,authenticated,service_role;create schema storage;create table storage.buckets(id text primary key,name text,public boolean);create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant all on storage.objects to authenticated;`);
-await db.exec('create role migration_admin nologin createrole bypassrls; grant postgres to migration_admin; create role auth_fixture_owner; alter schema auth owner to auth_fixture_owner; grant usage on schema auth to migration_admin with grant option; set role migration_admin;');
+await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated; create role migration_admin nologin createrole bypassrls; grant postgres to migration_admin; create role auth_fixture_owner; alter schema auth owner to auth_fixture_owner; grant usage on schema auth to migration_admin with grant option; set role migration_admin; alter default privileges in schema public grant all on tables to anon,authenticated;');
 for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort()){
 
- let sql=await readFile('supabase/migrations/'+f,'utf8');sql=sql.replace(/create extension if not exists pgcrypto;/gi,'');
+ let sql=await readFile('supabase/migrations/'+f,'utf8');sql=sql.replace(/create extension if not exists pgcrypto[^;]*;/gi,'');
  try{await db.exec(sql);console.log('APPLIED',f);}catch(e){console.error('FAILED',f,e.message,e.query?.slice(-1200));throw e;}
 }
 await db.exec('reset role; grant usage on schema auth to academy_executor; revoke usage on schema auth from migration_admin cascade; grant postgres,academy_executor to migration_admin with inherit false;');
@@ -14,6 +14,10 @@ const q=async(s,p=[]) => (await db.query(s,p)).rows;
 let checks=0;const assert=(ok,label)=>{if(!ok)throw Error(label);checks++;console.log('PASS',label);};
 async function rejects(fn,label){let rejected=false;try{await fn();}catch(e){rejected=true;console.log('REJECTED',e.message);}assert(rejected,label);}
 assert((await q("select count(*)::int n from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_roles r on r.oid=p.proowner where n.nspname in ('public','academy_private') and p.prosecdef and r.rolname not in ('postgres','academy_executor')"))[0].n===0,'all application security-definer helpers have stable runtime owners');
+assert((await q("select count(*)::int n from pg_views where schemaname='public' and viewname ~ '(finance|invoice|payment|payroll|refund|fee_plan|compensation|referral)'"))[0].n===0,'no empty financial compatibility views are installed');
+assert((await q("select count(*)::int n from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname ~ '(finance|invoice|payment|payroll|refund|discount|referral)'"))[0].n===0,'no financial RPCs or helper functions are installed');
+assert((await q("select has_table_privilege('anon','public.branch_owners','SELECT') ok"))[0].ok===false,'hosted default grants do not expose institution owners');
+assert((await q("select has_table_privilege('authenticated','public.branch_open_commands','SELECT') ok"))[0].ok===false,'idempotency records remain private despite hosted default grants');
 const owner='11111111-1111-4111-8111-111111111111',outsider='22222222-2222-4222-8222-222222222222',teacher='33333333-3333-4333-8333-333333333333';
 await db.exec(`insert into auth.users(id,email,email_confirmed_at) values('${owner}','owner@example.test',now()),('${outsider}','outsider@example.test',now()),('${teacher}','teacher@example.test',now());`);
 async function as(user,branch='',role='authenticated') {await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false),set_config('request.headers',$2,false)",[user,JSON.stringify({'x-academy-branch':branch})]);await db.exec('set role '+role);}
@@ -31,11 +35,18 @@ assert(!(await q('select id from public.programs')).some(p=>programs.some(a=>a.i
 await as(outsider,first.id);assert((await q('select count(*)::int n from public.programs'))[0].n===0,'forged branch header cannot read another institution');
 await rejects(()=>q('select public.admission_workspace()'),'legacy SECURITY DEFINER workspace denies forged branch');
 await as(owner);assert((await q('select count(*)::int n from public.programs'))[0].n===0,'missing selected branch exposes no records');
-await as(owner,first.id);const batch=(await q('select * from public.batches limit 1'))[0];
+await as(owner,first.id);
+await q('select public.publish_business_rule_version($1,$2,$3::jsonb,$4)',['academics','batch_capacity_policy',JSON.stringify({max_students:15}),'Reviewed demo capacity']);
+assert((await q("select payload->>'max_students' max from public.business_rule_versions where status='ACTIVE'"))[0].max==='15','academic capacity changes publish an audited version');
+const batch=(await q('select * from public.batches limit 1'))[0];
 const payload={request_id:crypto.randomUUID(),student_name:'Test Student',guardian_name:'Test Guardian',mobile:'01712345678',guardian_address:'Central address',consent_to_contact:true,offering_id:batch.offering_id,batch_id:batch.id,reason:'Verified academic intake'};
 const intake=(await q('select public.create_staff_admission_intake($1::jsonb) result',[JSON.stringify(payload)]))[0].result;
 const command=async(action,id=intake.admission_id)=>(await q('select public.admission_command($1::jsonb) result',[JSON.stringify({request_id:crypto.randomUUID(),action,admission_id:id,reason:'Verified academic placement'})]))[0].result;
-await command('READY');const enrolled=await command('FINALIZE');assert(enrolled.status==='ACTIVE_ENROLLMENT','admission enrolls without fee plan, invoice, payment or payroll');
+await command('READY');
+const consentDay=(await q('select current_date::text as consent_day'))[0].consent_day;
+await q('select public.record_physical_admission_consent($1::jsonb)',[JSON.stringify({request_id:crypto.randomUUID(),admission_id:intake.admission_id,guardian_signed_on:consentDay,student_signed:false,reason:'Verified signed demo application'})]);
+assert(true,'signed academic consent works without a referral or financial prerequisite');
+const enrolled=await command('FINALIZE');assert(enrolled.status==='ACTIVE_ENROLLMENT','admission enrolls without fee plan, invoice, payment or payroll');
 assert((await q('select count(*)::int n from public.students'))[0].n===1,'enrollment creates one real student identity');
 const workspace=(await q('select public.admission_workspace() result'))[0].result;assert(workspace.cases.length===1,'original admission workspace includes finance-free cases');
 await as(owner,second.id);assert((await q('select count(*)::int n from public.students'))[0].n===0,'student data remains isolated after branch switch');
