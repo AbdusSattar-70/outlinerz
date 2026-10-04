@@ -3,7 +3,7 @@ import type { Database, Json } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { profileSchema } from "./schema";
 type StudentDatabase = Database & {
-  academy: {
+  public: {
     Functions: {
       student_command: { Args: { p_input: Json }; Returns: Json };
       student_profile_workspace: {

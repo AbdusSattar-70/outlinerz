@@ -1,61 +1,64 @@
 # Outlinerz — simplified Sohoj Academy
 
-Working branch: `feature/simplified_version`. The public website, language toggle and academic ERP come from Sohoj Academy master (`00f11f2358516bc7362e1984836f09584085b4e7`). Finance, accounting, fee plans, payment collection, referral rewards and payroll are excluded from the active application.
+Fresh database version on `feature/simplified_version`. Sohoj's website, academic ERP and English/বাংলা toggle are retained. Accounting, fees, billing, payroll and referral rewards are excluded. Academic enrollment requires no financial setup.
 
-## Run locally
+## Start with a new Supabase project
 
-```bash
-git clone https://github.com/AbdusSattar-70/outlinerz.git
-cd outlinerz
-git switch feature/simplified_version
-pnpm install --frozen-lockfile
-cp .env.example .env.local
-pnpm exec supabase start
-pnpm exec supabase db push --local
-pnpm dev
-```
-
-Set the local Supabase URL and publishable key in `.env.local`. Use the Supabase CLI output for their actual values. The local API exposes the `academy` schema through `supabase/config.toml`.
-
-For an existing checkout:
+Do not use this migration history against the previous Outlinerz database. Create a new Supabase project first.
 
 ```bash
+cd ~/all-projects/outlinerz
 git fetch origin
-git switch --track origin/feature/simplified_version
+git switch feature/simplified_version
 git pull --ff-only
 pnpm install --frozen-lockfile
-```
-
-If the local branch already exists, use `git switch feature/simplified_version` instead of `--track`.
-
-## Hosted Supabase
-
-Link this checkout to the intended Outlinerz project, then push the forward migrations:
-
-```bash
-pnpm exec supabase link --project-ref YOUR_PROJECT_REF
+pnpm exec supabase link --project-ref YOUR_NEW_PROJECT_REF
 pnpm exec supabase db push
 pnpm exec supabase migration list
 ```
 
-In Supabase **Project Settings → Data API**, include `academy` in **Exposed schemas**. Keep the existing exposed schemas. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to that project’s values. Restart the application after environment changes.
+There is one migration: `01_simplified_baseline.sql`. The application uses the default `public` schema. No additional exposed-schema setting is required. `academy_private` stays private. No database reset, repair, role cleanup, migration squash or old migrations are needed for the new project.
 
-Migrations 01–04 and the installed `public` data are preserved. This version adds migrations 05–10 in a separate `academy` schema. It does not import live Sohoj student/teacher records, reset a database, or require a 22-file migration chain. Migration 05 consolidates the pinned source definitions; migration 06 removes financial stores and installs branch isolation. Typed empty views retain some legacy read response contracts; they store no financial data and accept no financial writes. Financial RPCs are disabled.
+Update `.env.local` with the **new project's** URL and publishable key:
 
-## Start operating
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_NEW_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_NEW_PROJECT_PUBLISHABLE_KEY
+```
 
-1. Sign up and verify your email. Open `/branches` and create your first branch with the institution name.
-2. Select the branch. Review its classes, subjects, programmes, offerings and 12-seat starter batches. Every branch receives separate editable records.
-3. Add verified staff accounts to that branch. Create their staff records and teaching assignments through the existing Sohoj screens.
-4. Review the website/application controls on each offering. Starter offerings are active for internal academic work but hidden from the website, with public intake closed.
-5. Share `/?branch=YOUR_BRANCH_SLUG`. The branch selection persists through the website and enquiry form. Optionally set `NEXT_PUBLIC_BRANCH_SLUG` for a single default public campus.
-6. Receive applicants through the public form or staff intake. Verify the admission draft, mark it ready, then confirm academic enrollment. No fee plan, invoice or payment is required.
+Set the new project's Auth Site URL to `http://localhost:3000` and allow `http://localhost:3000/auth/confirm` as a redirect URL for local email confirmation. Start the application:
 
-Student, staff, enquiry, admission, batch, session, attendance, assessment, directory and audit records are isolated by database policies and composite foreign keys. A shared login can belong to multiple branches. Changing branch selection never moves or shares operational records.
+```bash
+pnpm dev
+```
 
-Future student fees and teacher remuneration will be ported from Sohoj one workflow at a time, with branch scope and audit history.
+## Test immediately
 
-## Verify
+1. Sign up using your own email and verify it (accounts in the old project do not transfer).
+2. Open `/branches`, enter the institution name, branch name and unique slug.
+3. Leave **Include demo students, teachers and lessons** checked. Create the branch.
+4. Inspect the dashboard, student register, admission records, staff register, batches, programme directory and academic lessons.
+5. Visit `/?branch=YOUR_SLUG` and `/interest?branch=YOUR_SLUG` to test the public website and enquiry form.
+6. Open a second branch to check that data stays separate. Uncheck demo data for an empty operational branch.
+
+Every branch receives six classes, eleven subjects, four programmes (Junior Scholarship, SSC, HSC, Job Preparation), four offerings and four 12-seat batches. With demo enabled it also gets **eight enrolled students, two teacher records, one classroom and four scheduled lessons**. Demo names are clearly marked. Demo offerings are published and open for intake. Without demo, offerings start hidden and intake closed.
+
+Demo data is seeded **atomically during branch creation**, after a verified owner exists. It is available immediately when the dashboard opens. This avoids fabricated Auth users, shared passwords and ownerless demo branches. Demo teachers are staff records, not login accounts; sign up and add a real verified account to test teacher login. Demo consent values and addresses are test fixtures, not evidence for real people. Do not operate a live academy using demo records.
+
+Each branch receives its own records and IDs. Database RLS, function guards and composite foreign keys isolate student, teacher, admission, session, attendance, assessment and directory data. Shared login identity and immutable role definitions are global.
+
+## Local Supabase alternative
+
+```bash
+cp .env.example .env.local
+pnpm exec supabase start
+pnpm exec supabase db reset --local
+pnpm dev
+```
+
+Set `.env.local` using the URL and key shown by the local CLI. The same branch-opening seed works locally.
+
+## Verification and source
 
 ```bash
 npm ci --prefix scripts/database
@@ -65,10 +68,6 @@ pnpm lint
 pnpm build
 ```
 
-Database validation runs real PostgreSQL functions and RLS through PGlite with local Supabase identity/storage fixtures. It never connects to a hosted database. The browser integration suite uses a local HTTP adapter backed by the same migrated database; it requires a Chromium executable and the Playwright dependency under `scripts/ui`.
+The SQL validation applies the baseline to an empty PostgreSQL database under a migration administrator without SUPERUSER, then exercises branch isolation, finance-free admissions, teacher sessions, public intake and demo seeding. It never connects to your hosted project.
 
-## Recovery from migration 06 ownership error
-
-If migration 05 succeeded and 06 failed with `must be able to SET ROLE "academy_executor"`, pull the latest `feature/simplified_version` and run `pnpm exec supabase db push` again. Migration 06 now explicitly grants the migration administrator membership in its new executor role and grants the executor CREATE on the academy schema, as required for function ownership transfer. No API role receives that membership. Failed migrations are transactional; do not reset the database or mark migration 06 applied manually.
-
-Validation applies 01–05 first, then 06–10 as a CREATEROLE/BYPASSRLS administrator without SUPERUSER, reproducing the hosted ownership constraint.
+The source UI is pinned to Sohoj Academy commit `00f11f2358516bc7362e1984836f09584085b4e7`. `scripts/simplified/source-sql` holds reviewed assembly inputs, not migrations to run individually. `python scripts/simplified/assemble.py` regenerates the single baseline. Temporary upstream finance definitions are removed before the baseline transaction completes; no financial stores or financial RPC access remain in the resulting database. Future finance workflows will be ported gradually from Sohoj.

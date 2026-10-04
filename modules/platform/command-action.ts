@@ -37,7 +37,7 @@ export type RunCommandActionOptions<TInput, TSuccess> = {
       | { success: false; error: { issues?: readonly { message: string; path?: readonly PropertyKey[] }[] } };
   };
   input: TInput;
-  client: () => Promise<SupabaseClient<never, "academy"> | SupabaseClient | RpcClient>;
+  client: () => Promise<SupabaseClient<never, "public"> | SupabaseClient | RpcClient>;
   rpc: string;
   permission: string | string[];
   revalidate: string[];

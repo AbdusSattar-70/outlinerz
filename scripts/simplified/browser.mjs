@@ -15,14 +15,14 @@ const api=http.createServer((req,res)=>{serial=serial.then(async()=>{
  else{
  const signed=(req.headers.authorization??'').includes('.test');
  await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false),set_config('request.headers',$2,false)",[signed?owner:'',JSON.stringify(req.headers)]);await db.exec('set role '+(signed?'authenticated':'anon'));
- const schema=req.headers['accept-profile']??req.headers['content-profile'];assert.equal(schema,'academy','Data API uses academy schema');
+ const schema=req.headers['accept-profile']??req.headers['content-profile'];assert.equal(schema,'public','Data API uses default public schema');
  const name=url.pathname.split('/').pop();assert.match(name,/^[a-z_]+$/);
  if(url.pathname.startsWith('/rest/v1/rpc/')){
  const args=Object.keys(input);for(const a of args)assert.match(a,/^p_[a-z_]+$/);
- const call=args.map((a,i)=>`${a} => $${i+1}`).join(',');result=(await q(`select academy.${name}(${call}) result`,Object.values(input).map(v=>typeof v==='object'?JSON.stringify(v):v)))[0].result;
+ const call=args.map((a,i)=>`${a} => $${i+1}`).join(',');result=(await q(`select public.${name}(${call}) result`,Object.values(input).map(v=>typeof v==='object'?JSON.stringify(v):v)))[0].result;
  }else{
  const predicates=[],values=[];for(const[key,value]of url.searchParams){if(['select','order','limit','offset'].includes(key)||key.includes('.'))continue;assert.match(key,/^[a-z_]+$/);const dot=value.indexOf('.'),op=value.slice(0,dot),v=value.slice(dot+1);if(op==='eq'){values.push(v);predicates.push(`${key}=$${values.length}`);}else if(op==='is')predicates.push(`${key} is ${v==='null'?'null':v==='true'?'true':'false'}`);else if(op==='in'){values.push('{'+v.slice(1,-1)+'}');predicates.push(`${key}=any($${values.length})`);}}
- result=await q(`select * from academy.${name}${predicates.length?' where '+predicates.join(' and '):''}`,values);res.setHeader('Content-Range',`0-${Math.max(0,result.length-1)}/${result.length}`);if(req.headers.accept?.includes('vnd.pgrst.object'))result=result[0]??null;
+ result=await q(`select * from public.${name}${predicates.length?' where '+predicates.join(' and '):''}`,values);res.setHeader('Content-Range',`0-${Math.max(0,result.length-1)}/${result.length}`);if(req.headers.accept?.includes('vnd.pgrst.object'))result=result[0]??null;
  }
  }
  if(url.pathname.includes('public_academic_directory'))console.log('DIRECTORY',Object.keys(result??{}),result?.classes?.length,req.headers['x-academy-public-branch']);if(url.pathname.includes('list_public_programme_offerings'))console.log('CATALOGUE',Array.isArray(result));

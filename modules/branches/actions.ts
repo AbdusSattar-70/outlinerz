@@ -14,7 +14,7 @@ export async function selectBranch(form:FormData){
 }
 export async function openBranch(form:FormData){
  await getMyBranches();const input=z.object({requestId:z.string().uuid(),name:z.string().trim().min(2).max(120),slug:z.string().regex(/^[a-z0-9][a-z0-9-]{2,62}$/),organizationName:z.string().trim().max(120)}).parse(Object.fromEntries(form));
- const db=await platformClient();const{data,error}=await db.rpc("open_academy_branch",{p_request_id:input.requestId,p_name:input.name,p_slug:input.slug,p_organization_name:input.organizationName||null});
+ const db=await platformClient();const{data,error}=await db.rpc("open_academy_branch",{p_request_id:input.requestId,p_name:input.name,p_slug:input.slug,p_organization_name:input.organizationName||null,p_demo:form.get("demo")==="on"});
  if(error) redirect(`/branches?error=${encodeURIComponent(error.message)}`);
  const branch=z.object({id:z.string().uuid(),slug:z.string()}).parse(data);await select(branch.id,branch.slug);redirect("/dashboard");
 }

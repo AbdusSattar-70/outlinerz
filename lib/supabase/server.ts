@@ -14,7 +14,7 @@ export const createClient = cache(async () => {
   }
 
   const client = createServerClient<Database>(url, key, {
-    db: { schema: "academy" },
+    db: { schema: "public" },
     global: { fetch: boundedFetch, headers: { "x-academy-branch": cookieStore.get("academy-branch")?.value ?? "", "x-academy-public-branch": (await headers()).get("x-academy-public-slug") ?? cookieStore.get("academy-public-branch")?.value ?? process.env.NEXT_PUBLIC_BRANCH_SLUG ?? "" } },
     cookies: {
       getAll: () => cookieStore.getAll(),

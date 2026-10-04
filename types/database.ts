@@ -1,7 +1,7 @@
 /** Fresh database contract. Update alongside schema changes; regenerate with Supabase after deployment. */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 export type Database = {
-  academy: {
+  public: {
     Tables: {
       organizations: {
         Row: {
@@ -85,21 +85,21 @@ export type Database = {
         Row: {
           id: string;
           display_name: string;
-          status: Database["academy"]["Enums"]["profile_status"];
+          status: Database["public"]["Enums"]["profile_status"];
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           display_name: string;
-          status?: Database["academy"]["Enums"]["profile_status"];
+          status?: Database["public"]["Enums"]["profile_status"];
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           display_name?: string;
-          status?: Database["academy"]["Enums"]["profile_status"];
+          status?: Database["public"]["Enums"]["profile_status"];
           created_at?: string;
           updated_at?: string;
         };
@@ -228,7 +228,7 @@ export type Database = {
           emergency_contact_mobile: string | null;
           joined_on: string | null;
           left_on: string | null;
-          status: Database["academy"]["Enums"]["staff_status"];
+          status: Database["public"]["Enums"]["staff_status"];
           notes: string | null;
           created_by: string | null;
           created_at: string;
@@ -248,7 +248,7 @@ export type Database = {
           emergency_contact_mobile?: string | null;
           joined_on?: string | null;
           left_on?: string | null;
-          status?: Database["academy"]["Enums"]["staff_status"];
+          status?: Database["public"]["Enums"]["staff_status"];
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -268,7 +268,7 @@ export type Database = {
           emergency_contact_mobile?: string | null;
           joined_on?: string | null;
           left_on?: string | null;
-          status?: Database["academy"]["Enums"]["staff_status"];
+          status?: Database["public"]["Enums"]["staff_status"];
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -400,7 +400,7 @@ export type Database = {
           requested_action: string;
           payload_snapshot: Json;
           request_note: string | null;
-          status: Database["academy"]["Enums"]["approval_status"];
+          status: Database["public"]["Enums"]["approval_status"];
           requested_by: string;
           requested_at: string;
           decided_by: string | null;
@@ -417,7 +417,7 @@ export type Database = {
           requested_action: string;
           payload_snapshot?: Json;
           request_note?: string | null;
-          status?: Database["academy"]["Enums"]["approval_status"];
+          status?: Database["public"]["Enums"]["approval_status"];
           requested_by: string;
           requested_at?: string;
           decided_by?: string | null;
@@ -434,7 +434,7 @@ export type Database = {
           requested_action?: string;
           payload_snapshot?: Json;
           request_note?: string | null;
-          status?: Database["academy"]["Enums"]["approval_status"];
+          status?: Database["public"]["Enums"]["approval_status"];
           requested_by?: string;
           requested_at?: string;
           decided_by?: string | null;
@@ -450,7 +450,7 @@ export type Database = {
           domain: string;
           rule_key: string;
           version: number;
-          status: Database["academy"]["Enums"]["rule_status"];
+          status: Database["public"]["Enums"]["rule_status"];
           effective_from: string;
           effective_to: string | null;
           payload: Json;
@@ -463,7 +463,7 @@ export type Database = {
           domain: string;
           rule_key: string;
           version: number;
-          status?: Database["academy"]["Enums"]["rule_status"];
+          status?: Database["public"]["Enums"]["rule_status"];
           effective_from?: string;
           effective_to?: string | null;
           payload: Json;
@@ -476,7 +476,7 @@ export type Database = {
           domain?: string;
           rule_key?: string;
           version?: number;
-          status?: Database["academy"]["Enums"]["rule_status"];
+          status?: Database["public"]["Enums"]["rule_status"];
           effective_from?: string;
           effective_to?: string | null;
           payload?: Json;
@@ -806,7 +806,7 @@ export type Database = {
           group_id: string | null;
           code: string;
           name: string;
-          status: Database["academy"]["Enums"]["offering_status"];
+          status: Database["public"]["Enums"]["offering_status"];
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -840,7 +840,7 @@ export type Database = {
           group_id?: string | null;
           code: string;
           name: string;
-          status?: Database["academy"]["Enums"]["offering_status"];
+          status?: Database["public"]["Enums"]["offering_status"];
           created_by: string;
           created_at?: string;
           updated_at?: string;
@@ -874,7 +874,7 @@ export type Database = {
           group_id?: string | null;
           code?: string;
           name?: string;
-          status?: Database["academy"]["Enums"]["offering_status"];
+          status?: Database["public"]["Enums"]["offering_status"];
           created_by?: string;
           created_at?: string;
           updated_at?: string;
@@ -905,7 +905,7 @@ export type Database = {
           id: string;
           offering_id: string;
           version: number;
-          status: Database["academy"]["Enums"]["rule_status"];
+          status: Database["public"]["Enums"]["rule_status"];
           billing_cycle: string;
           due_day: number | null;
           currency_code: string;
@@ -919,7 +919,7 @@ export type Database = {
           id?: string;
           offering_id: string;
           version: number;
-          status?: Database["academy"]["Enums"]["rule_status"];
+          status?: Database["public"]["Enums"]["rule_status"];
           billing_cycle: string;
           due_day?: number | null;
           currency_code?: string;
@@ -933,7 +933,7 @@ export type Database = {
           id?: string;
           offering_id?: string;
           version?: number;
-          status?: Database["academy"]["Enums"]["rule_status"];
+          status?: Database["public"]["Enums"]["rule_status"];
           billing_cycle?: string;
           due_day?: number | null;
           currency_code?: string;
@@ -1021,7 +1021,7 @@ export type Database = {
           referral_note: string | null;
           notes: string | null;
           consent_to_contact: boolean;
-          status: Database["academy"]["Enums"]["prospect_status"];
+          status: Database["public"]["Enums"]["prospect_status"];
           assigned_to_staff_id: string | null;
           next_follow_up_at: string | null;
           lost_reason: string | null;
@@ -1064,7 +1064,7 @@ export type Database = {
           referral_note?: string | null;
           notes?: string | null;
           consent_to_contact?: boolean;
-          status?: Database["academy"]["Enums"]["prospect_status"];
+          status?: Database["public"]["Enums"]["prospect_status"];
           assigned_to_staff_id?: string | null;
           next_follow_up_at?: string | null;
           lost_reason?: string | null;
@@ -1107,7 +1107,7 @@ export type Database = {
           referral_note?: string | null;
           notes?: string | null;
           consent_to_contact?: boolean;
-          status?: Database["academy"]["Enums"]["prospect_status"];
+          status?: Database["public"]["Enums"]["prospect_status"];
           assigned_to_staff_id?: string | null;
           next_follow_up_at?: string | null;
           lost_reason?: string | null;
@@ -1213,7 +1213,7 @@ export type Database = {
           school_id: string | null;
           school_name_snapshot: string | null;
           school_roll: string | null;
-          status: Database["academy"]["Enums"]["student_status"];
+          status: Database["public"]["Enums"]["student_status"];
           created_from_prospect_id: string | null;
           created_by: string | null;
           created_at: string;
@@ -1235,7 +1235,7 @@ export type Database = {
           school_id?: string | null;
           school_name_snapshot?: string | null;
           school_roll?: string | null;
-          status?: Database["academy"]["Enums"]["student_status"];
+          status?: Database["public"]["Enums"]["student_status"];
           created_from_prospect_id?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1256,7 +1256,7 @@ export type Database = {
           school_id?: string | null;
           school_name_snapshot?: string | null;
           school_roll?: string | null;
-          status?: Database["academy"]["Enums"]["student_status"];
+          status?: Database["public"]["Enums"]["student_status"];
           created_from_prospect_id?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1401,7 +1401,7 @@ export type Database = {
           program_id: string | null;
           batch_id: string | null;
           admission_date: string;
-          status: Database["academy"]["Enums"]["enrollment_status"];
+          status: Database["public"]["Enums"]["enrollment_status"];
           ended_on: string | null;
           created_by: string | null;
           created_at: string;
@@ -1417,7 +1417,7 @@ export type Database = {
           program_id?: string | null;
           batch_id?: string | null;
           admission_date?: string;
-          status?: Database["academy"]["Enums"]["enrollment_status"];
+          status?: Database["public"]["Enums"]["enrollment_status"];
           ended_on?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1433,7 +1433,7 @@ export type Database = {
           program_id?: string | null;
           batch_id?: string | null;
           admission_date?: string;
-          status?: Database["academy"]["Enums"]["enrollment_status"];
+          status?: Database["public"]["Enums"]["enrollment_status"];
           ended_on?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -4032,7 +4032,7 @@ export type Database = {
         id: string;
         offering_id: string;
         version: number;
-        status: Database["academy"]["Enums"]["rule_status"];
+        status: Database["public"]["Enums"]["rule_status"];
         billing_cycle: string;
         due_day: number | null;
         currency_code: string;
@@ -4056,7 +4056,7 @@ export type Database = {
         id: string;
         domain: string;
         rule_key: string;
-        status: Database["academy"]["Enums"]["rule_status"];
+        status: Database["public"]["Enums"]["rule_status"];
         payload: Json;
       }; Relationships: [] };
     };
